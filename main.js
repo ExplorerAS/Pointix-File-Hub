@@ -26,17 +26,17 @@ const OFFICE_TEMPLATES = Object.freeze({
 
 const FILE_TYPES = [
   { id: "markdown", name: "Nota", description: "Markdown nativo y conectado", ext: "md", icon: "notebook-pen", category: "Notas", color: "violet", content: ({ title }) => `# ${title}\n\n` },
-  { id: "text", name: "Texto", description: "Texto plano universal", ext: "txt", icon: "text", category: "Notas", color: "blue", content: () => "" },
+  { id: "text", name: "Texto", description: "Texto plano universal", ext: "txt", icon: "text", category: "Notas", color: "blue", viewer: true, content: () => "" },
   { id: "canvas", name: "Canvas", description: "Lienzo visual de Obsidian", ext: "canvas", icon: "layout-dashboard", category: "Visual", color: "pink", content: () => '{\n  "nodes": [],\n  "edges": []\n}\n' },
   { id: "base", name: "Base", description: "Vista de datos nativa", ext: "base", icon: "database", category: "Datos", color: "emerald", content: () => "views:\n  - type: table\n    name: Table\n" },
-  { id: "csv", name: "Tabla CSV", description: "Datos compatibles con hojas de cálculo", ext: "csv", icon: "table-2", category: "Datos", color: "emerald", content: () => "Columna 1,Columna 2,Columna 3\n" },
-  { id: "json", name: "JSON", description: "Datos estructurados", ext: "json", icon: "braces", category: "Código", color: "amber", content: () => '{\n  \n}\n' },
-  { id: "html", name: "Página HTML", description: "Documento web portátil", ext: "html", icon: "code-2", category: "Código", color: "orange", content: ({ title }) => `<!doctype html>\n<html lang="es">\n<head>\n  <meta charset="utf-8">\n  <meta name="viewport" content="width=device-width, initial-scale=1">\n  <title>${escapeHtml(title)}</title>\n</head>\n<body>\n  <h1>${escapeHtml(title)}</h1>\n</body>\n</html>\n` },
+  { id: "csv", name: "Tabla CSV", description: "Datos compatibles con hojas de cálculo", ext: "csv", icon: "table-2", category: "Datos", color: "emerald", viewer: true, content: () => "Columna 1,Columna 2,Columna 3\n" },
+  { id: "json", name: "JSON", description: "Datos estructurados", ext: "json", icon: "braces", category: "Código", color: "amber", viewer: true, content: () => '{\n  \"propiedad\": \"valor\"\n}\n' },
+  { id: "html", name: "Página HTML", description: "Documento web portátil", ext: "html", icon: "code-2", category: "Código", color: "orange", viewer: true, content: ({ title }) => `<!doctype html>\n<html lang="es">\n<head>\n  <meta charset="utf-8">\n  <meta name="viewport" content="width=device-width, initial-scale=1">\n  <title>${escapeHtml(title)}</title>\n</head>\n<body>\n  <h1>${escapeHtml(title)}</h1>\n</body>\n</html>\n` },
   { id: "docx", name: "Documento Word", description: "Microsoft Word o editor compatible", ext: "docx", icon: "file-text", category: "Office", color: "blue", office: true },
   { id: "xlsx", name: "Libro de Excel", description: "Microsoft Excel o editor compatible", ext: "xlsx", icon: "sheet", category: "Office", color: "emerald", office: true },
   { id: "pptx", name: "Presentación", description: "PowerPoint o editor compatible", ext: "pptx", icon: "presentation", category: "Office", color: "orange", office: true },
   { id: "univer", name: "Hoja Sheet Plus", description: "Libro editable dentro de Obsidian", ext: "univer", icon: "table-properties", category: "Office", color: "green", integration: ["sheet", "excel", "univer"] },
-  { id: "excalidraw", name: "Dibujo Excalidraw", description: "Pizarra y diagramación", ext: "md", icon: "pen-tool", category: "Visual", color: "pink", integration: ["excalidraw"] },
+  { id: "excalidraw", name: "Dibujo Excalidraw", description: "Pizarra y diagramación", ext: "excalidraw.md", icon: "pen-tool", category: "Visual", color: "pink", pluginId: "obsidian-excalidraw-plugin", openNative: true, content: () => `---\nexcalidraw-plugin: parsed\ntags: [excalidraw]\n---\n==⚠  Switch to EXCALIDRAW VIEW in the MORE OPTIONS menu of this document. ⚠==\n\n# Text Elements\n\n# Embedded files\n\n# Drawing\n\`\`\`json\n{\"type\":\"excalidraw\",\"version\":2,\"source\":\"https://github.com/zsviczian/obsidian-excalidraw-plugin/releases/tag/2.0.0\",\"elements\":[],\"appState\":{\"gridSize\":null,\"viewBackgroundColor\":\"#ffffff\"},\"files\":{}}\n\`\`\`\n` },
 ];
 
 function escapeHtml(value) {
@@ -133,6 +133,12 @@ class PointixFileHubPlugin extends Plugin {
   }
 
   availability(type) {
+    if (type.pluginId) {
+      const enabled = this.enabledPluginIds().includes(type.pluginId);
+      return enabled
+        ? { state: "ready", label: "Complemento disponible" }
+        : { state: "optional", label: "Requiere complemento" };
+    }
     if (type.integration) {
       const command = this.findIntegration(type);
       return command
@@ -142,6 +148,7 @@ class PointixFileHubPlugin extends Plugin {
     if (type.office) {
       return { state: "native", label: "Plantilla interna segura" };
     }
+    if (type.viewer) return { state: "ready", label: "Editor Pointix" };
     return { state: "native", label: "Nativo" };
   }
 
@@ -188,7 +195,7 @@ class PointixFileHubPlugin extends Plugin {
       this.remember(type.id);
       new Notice(`${type.name} creado: ${file.path}`);
       if (file && this.settings.openAfterCreate) {
-        if (["md", "canvas", "base"].includes(type.ext)) await this.app.workspace.getLeaf("tab").openFile(file);
+        if (["md", "canvas", "base"].includes(type.ext) || type.openNative) await this.app.workspace.getLeaf("tab").openFile(file);
         else await this.openShell(file.path);
       }
       return file;
@@ -349,17 +356,21 @@ class FileShellView extends ItemView {
   getViewType() { return SHELL_VIEW; }
   getDisplayText() { return this.filePath ? this.filePath.split("/").pop() : "Archivo externo"; }
   getIcon() { return "panel-top-open"; }
-  async setState(state, result) { this.filePath = state?.file || ""; this.render(); return super.setState(state, result); }
+  async setState(state, result) { this.filePath = state?.file || ""; await this.render(); return super.setState(state, result); }
   getState() { return { file: this.filePath }; }
-  async onOpen() { this.render(); }
+  async onOpen() { await this.render(); }
 
-  render() {
+  async render() {
     const root = this.containerEl.children[1];
     root.empty();
     root.addClass("pointix-file-shell");
     const file = this.app.vault.getAbstractFileByPath(this.filePath);
     if (!file || !file.extension) {
       root.createDiv({ cls: "pfh-empty", text: "El archivo ya no está disponible." });
+      return;
+    }
+    if (["json", "txt", "csv", "html", "css", "js", "xml", "yaml", "yml"].includes(file.extension.toLowerCase())) {
+      await this.renderTextEditor(root, file);
       return;
     }
     const panel = root.createDiv("pfs-panel");
@@ -380,6 +391,56 @@ class FileShellView extends ItemView {
     info.createDiv().setText(`Formato\n.${file.extension}`);
     info.createDiv().setText(`Tamaño\n${formatBytes(file.stat?.size || 0)}`);
     info.createDiv().setText(`Modificado\n${new Date(file.stat?.mtime || Date.now()).toLocaleString()}`);
+  }
+
+  async renderTextEditor(root, file) {
+    root.addClass("pointix-text-editor");
+    const header = root.createDiv("pte-header");
+    const identity = header.createDiv("pte-identity");
+    const icon = identity.createSpan("pte-icon");
+    setIcon(icon, iconForExtension(file.extension));
+    const labels = identity.createDiv();
+    labels.createEl("h2", { text: file.name });
+    labels.createEl("small", { text: file.path });
+    const actions = header.createDiv("pte-actions");
+    const status = actions.createSpan({ cls: "pte-status", text: "Guardado" });
+    const save = actions.createEl("button", { cls: "mod-cta", text: "Guardar" });
+    save.prepend(createIcon("save"));
+    const editor = root.createEl("textarea", {
+      cls: "pte-editor",
+      attr: { spellcheck: "false", "aria-label": `Editar ${file.name}` },
+    });
+    editor.value = await this.app.vault.read(file);
+    let dirty = false;
+    editor.addEventListener("input", () => {
+      dirty = true;
+      status.setText("Cambios sin guardar");
+      status.addClass("is-dirty");
+    });
+    const saveFile = async () => {
+      if (!dirty) return;
+      if (file.extension.toLowerCase() === "json") {
+        try { JSON.parse(editor.value); }
+        catch (error) { new Notice("JSON inválido: corrige la sintaxis antes de guardar."); return; }
+      }
+      save.disabled = true;
+      try {
+        await this.app.vault.modify(file, editor.value);
+        dirty = false;
+        status.setText("Guardado");
+        status.removeClass("is-dirty");
+      } finally {
+        save.disabled = false;
+      }
+    };
+    save.addEventListener("click", saveFile);
+    editor.addEventListener("keydown", (event) => {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "s") {
+        event.preventDefault();
+        saveFile();
+      }
+    });
+    setTimeout(() => editor.focus(), 50);
   }
 }
 
