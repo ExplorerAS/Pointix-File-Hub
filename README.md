@@ -2,7 +2,7 @@
 
 Un centro visual para crear, organizar y abrir distintos tipos de archivo sin perder la sensación de estar dentro de Obsidian.
 
-## Beta 0.4
+## Beta 0.5
 
 - Selector visual desde la cinta lateral y la paleta de comandos.
 - Notas Markdown, texto, Canvas, Bases, CSV, JSON y HTML.
@@ -45,7 +45,18 @@ Pointix puede crear una nota compañera Markdown para PDF, imagen, audio, video 
 
 ### Integraciones web
 
-Figma, Canva y Google Sheets se guardan como notas enlazadas con contexto, estado y recursos relacionados. Pointix no crea archivos falsos ni afirma editar localmente contenido que pertenece al servicio web.
+Pointix incluye un catálogo organizado de 34 servicios para proyectos, diseño, comunicación, productividad, desarrollo, multimedia y almacenamiento. Entre ellos están Figma, Canva, Microsoft Visio, Yandex Boards, Yandex Calendar, Yandex Forms, Google Sheets, Notion, Trello, GitHub, YouTube y Dropbox.
+
+Cada integración se guarda como una ficha Markdown estándar con:
+
+- Enlace directo validado contra el servicio elegido.
+- Acceso declarado: público para visualizar, público para editar o privado.
+- Modo de compatibilidad visible.
+- Contexto, estado, responsables, revisión y anotaciones.
+- Apertura dentro de Obsidian y ruta segura al navegador externo.
+- Ayuda específica ante errores 401, bloqueos de inserción o inicios de sesión incompatibles.
+
+Pointix rechaza enlaces de páginas de autenticación conocidas y nunca solicita ni conserva contraseñas. Los permisos reales continúan bajo el control de cada servicio; Pointix no crea archivos falsos ni afirma editar localmente contenido alojado en la web.
 
 ## Instalación para pruebas
 

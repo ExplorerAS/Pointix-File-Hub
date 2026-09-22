@@ -56,6 +56,10 @@
 .pfh-picker-icon { display:grid; place-items:center; width:36px; height:36px; border-radius:10px; color:var(--interactive-accent); background:color-mix(in srgb,var(--interactive-accent) 13%,transparent); }
 .pfh-picker-text { display:flex; flex-direction:column; gap:2px; }.pfh-picker-text small { color:var(--text-muted); font-family:var(--font-monospace); }
 .pfh-modal-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:20px; }
+.pfh-integration-modal { width:min(720px,92vw); }
+.pfh-integration-guidance { display:flex; flex-direction:column; gap:4px; margin:14px 0 8px; padding:13px 15px; border:1px solid color-mix(in srgb,var(--interactive-accent) 32%,var(--background-modifier-border)); border-radius:13px; background:color-mix(in srgb,var(--interactive-accent) 7%,var(--background-secondary)); }
+.pfh-integration-guidance strong { color:var(--interactive-accent); font-size:12px; }
+.pfh-integration-guidance span { color:var(--text-muted); font-size:11px; line-height:1.5; }
 .pfh-pdf-modal { width:min(720px,92vw); }
 .pfh-pdf-search { margin:18px 0 12px; }
 .pfh-pdf-results { display:flex; flex-direction:column; gap:7px; max-height:min(56vh,560px); overflow:auto; padding:2px; }
