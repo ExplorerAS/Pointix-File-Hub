@@ -125,14 +125,15 @@ test("Excalidraw uses the official automation API and performs no manual write",
 test("smart note pack provides structured Markdown templates", () => {
   const PluginClass = loadPlugin();
   const { FILE_TYPES, PACKS } = PluginClass.__test;
-  const smartTypes = FILE_TYPES.filter((type) => type.pack === "smart-notes");
+  const smartTypes = FILE_TYPES.filter((type) => type.category === "Plantillas");
   assert.ok(PACKS.some((pack) => pack.id === "smart-notes"));
-  assert.equal(smartTypes.length, 8);
+  assert.equal(smartTypes.length, 15);
   for (const type of smartTypes) {
     assert.equal(type.ext, "md");
     const content = type.content({ title: "Prueba" });
     assert.match(content, /pointix-type:/);
-    assert.match(content, /> \[!(info|abstract|todo|quote|tip|danger)\]/);
+    assert.match(content, /fecha-creacion:/);
+    assert.match(content, /> \[![a-z-]+\]/);
     assert.match(content, /## /);
   }
 });
@@ -144,6 +145,49 @@ test("PDF picker opens existing vault files without copying or importing", () =>
   assert.match(source, /extension\?\.toLowerCase\(\) === "pdf"/);
   assert.match(source, /getLeaf\("tab"\)\.openFile\(file\)/);
   assert.doesNotMatch(source, /adapter\.list|adapter\.copy|copyFile|copyFolder/);
+});
+
+test("expanded text catalog stays editable in Pointix", () => {
+  const PluginClass = loadPlugin();
+  const { FILE_TYPES } = PluginClass.__test;
+  const expected = ["yaml", "xml", "toml", "sql", "py", "js", "ts", "sh", "bat", "mmd", "svg", "opml", "rtf", "drawio", "mm", "bib", "vcf", "ics", "ipynb"];
+  for (const extension of expected) {
+    const type = FILE_TYPES.find((item) => item.ext === extension);
+    assert.ok(type, `missing .${extension}`);
+    assert.equal(type.viewer, true, `.${extension} must use the Pointix editor`);
+  }
+});
+
+test("multimedia companion notes link files without modifying them", () => {
+  const PluginClass = loadPlugin();
+  const { FILE_TYPES } = PluginClass.__test;
+  const companions = FILE_TYPES.filter((type) => type.action === "companion");
+  assert.equal(companions.length, 5);
+  const source = fs.readFileSync(path.join(root, "main.js"), "utf8");
+  assert.match(source, /archivo: "\[\[\$\{safePath\}\]\]"/);
+  assert.match(source, /createCompanionNote/);
+});
+
+test("external PDF import accepts one selected file and never scans its folder", () => {
+  const source = fs.readFileSync(path.join(root, "main.js"), "utf8");
+  assert.match(source, /accept: "application\/pdf,\.pdf"/);
+  assert.match(source, /chooser\.files\?\.\[0\]/);
+  assert.match(source, /500 \* 1024 \* 1024/);
+  assert.doesNotMatch(source, /readdir|readDirectory|adapter\.list/);
+});
+
+test("catalog exposes all nine configurable packs", () => {
+  const PluginClass = loadPlugin();
+  const { PACKS } = PluginClass.__test;
+  assert.deepEqual(PACKS.map((pack) => pack.id), ["essentials", "smart-notes", "office", "data", "code", "visual", "multimedia", "academic", "business"]);
+});
+
+test("web integrations create linked Markdown instead of fake service files", () => {
+  const PluginClass = loadPlugin();
+  const { FILE_TYPES } = PluginClass.__test;
+  const webLinks = FILE_TYPES.filter((type) => type.action === "web-link");
+  assert.deepEqual(webLinks.map((type) => type.service), ["Figma", "Canva", "Google Sheets"]);
+  assert.ok(webLinks.every((type) => type.ext === "md"));
 });
 
 test("text formats use the internal Pointix editor", () => {
