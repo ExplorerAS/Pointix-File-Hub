@@ -2,20 +2,20 @@
 
 Un centro visual para crear, organizar y abrir distintos tipos de archivo sin perder la sensación de estar dentro de Obsidian.
 
-## Beta 0.1
+## Beta 0.2
 
 - Selector visual desde la cinta lateral y la paleta de comandos.
 - Notas Markdown, texto, Canvas, Bases, CSV, JSON y HTML.
 - Integración por detección con Sheet Plus y Excalidraw.
-- Documentos Word, Excel y PowerPoint mediante plantillas válidas del usuario.
+- Documentos Word, Excel y PowerPoint mediante plantillas internas controladas.
 - Vista **File Shell** para archivos que se editan con una aplicación externa.
 - Favoritos, búsqueda, categorías y archivos recientes.
 - Sin telemetría, cuentas ni conexiones de red.
 - Diseño adaptable para escritorio y móvil.
 
-### Corrección de seguridad 0.1.1
+### Reconstrucción de seguridad 0.2.0
 
-Las plantillas de Office se validan como archivos reales con la extensión correspondiente. Las carpetas y las rutas incompatibles se rechazan antes de cualquier operación de copia.
+La creación de Office ya no acepta rutas de plantillas ni copia contenido existente. Cada documento se escribe una sola vez desde un recurso binario interno. Las rutas absolutas, recorridos `..` y ejecuciones duplicadas se bloquean.
 
 ## Instalación para pruebas
 
@@ -38,7 +38,7 @@ Reinicia Obsidian y activa el complemento.
 
 ## Office sin archivos dañados
 
-Un `.docx`, `.xlsx` o `.pptx` real es un paquete comprimido, no un archivo de texto vacío. Para preservar compatibilidad, configura una plantilla válida de cada formato en los ajustes del complemento. Pointix hará una copia con el nombre y la ubicación elegidos.
+Un `.docx`, `.xlsx` o `.pptx` real es un paquete comprimido, no un archivo de texto vacío. Pointix incluye paquetes mínimos válidos y los escribe directamente como un único archivo nuevo; nunca recorre ni copia carpetas de la bóveda.
 
 ## Filosofía de privacidad
 
