@@ -2,7 +2,7 @@
 
 Un centro visual para crear, organizar y abrir distintos tipos de archivo sin perder la sensación de estar dentro de Obsidian.
 
-## Beta 0.3
+## Beta 0.4
 
 - Selector visual desde la cinta lateral y la paleta de comandos.
 - Notas Markdown, texto, Canvas, Bases, CSV, JSON y HTML.
@@ -14,6 +14,10 @@ Un centro visual para crear, organizar y abrir distintos tipos de archivo sin pe
 - Ocho notas inteligentes: reunión, proyecto, tarea, diario, idea, cliente, incidencia y factura.
 - Plantillas enriquecidas con etapas, tablas, responsables, criterios y bloques visuales adaptados a cada tipo de nota.
 - Buscador de PDF dentro de la bóveda con apertura directa en el visor nativo de Obsidian.
+- Importación explícita de un único PDF desde el equipo, sin recorrer ni copiar carpetas.
+- Notas compañeras para PDF, imagen, audio y video, enlazadas al archivo original.
+- Quince notas inteligentes y doce formatos de texto adicionales editables dentro de Pointix.
+- Nueve paquetes activables: Esenciales, Oficina, Notas inteligentes, Código, Datos, Visual, Multimedia, Académico y Negocios.
 - Vista **File Shell** para archivos que se editan con una aplicación externa.
 - Favoritos, búsqueda, categorías y archivos recientes.
 - Sin telemetría, cuentas ni conexiones de red.
@@ -22,6 +26,26 @@ Un centro visual para crear, organizar y abrir distintos tipos de archivo sin pe
 ### Reconstrucción de seguridad 0.2.0
 
 La creación de Office ya no acepta rutas de plantillas ni copia contenido existente. Cada documento se escribe una sola vez desde un recurso binario interno. Las rutas absolutas, recorridos `..` y ejecuciones duplicadas se bloquean.
+
+## Arquitectura del catálogo
+
+Pointix distingue entre archivos reales, notas inteligentes e integraciones. No utiliza extensiones inventadas para las notas: todas son Markdown estándar con propiedades compatibles con búsqueda, Bases, gráfico y otros complementos.
+
+### Notas inteligentes
+
+Reunión, proyecto, tarea, diario, idea, cliente, incidencia, factura, lectura, receta, snippet, contacto, evento, flashcard y referencia.
+
+### Formatos editables
+
+JSON, YAML, XML, TOML, SQL, Python, JavaScript, TypeScript, Shell, BAT, Mermaid, SVG, OPML, RTF, Draw.io, FreeMind, BibTeX, vCard, iCalendar, Jupyter, HTML, CSV y texto.
+
+### Multimedia relacionada
+
+Pointix puede crear una nota compañera Markdown para PDF, imagen, audio, video o EPUB. La nota incluye el enlace interno, vista incrustada cuando Obsidian la admite, estado, resumen, anotaciones y marcas de tiempo para audio y video.
+
+### Integraciones web
+
+Figma, Canva y Google Sheets se guardan como notas enlazadas con contexto, estado y recursos relacionados. Pointix no crea archivos falsos ni afirma editar localmente contenido que pertenece al servicio web.
 
 ## Instalación para pruebas
 
