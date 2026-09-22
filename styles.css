@@ -49,6 +49,13 @@
 .pfh-picker-icon { display:grid; place-items:center; width:36px; height:36px; border-radius:10px; color:var(--interactive-accent); background:color-mix(in srgb,var(--interactive-accent) 13%,transparent); }
 .pfh-picker-text { display:flex; flex-direction:column; gap:2px; }.pfh-picker-text small { color:var(--text-muted); font-family:var(--font-monospace); }
 .pfh-modal-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:20px; }
+.pfh-pdf-modal { width:min(720px,92vw); }
+.pfh-pdf-search { margin:18px 0 12px; }
+.pfh-pdf-results { display:flex; flex-direction:column; gap:7px; max-height:min(56vh,560px); overflow:auto; padding:2px; }
+.pfh-pdf-item { display:flex; align-items:center; gap:12px; width:100%; padding:10px 12px; text-align:left; border-radius:12px; background:var(--background-secondary); }
+.pfh-pdf-item:hover,.pfh-pdf-item:focus-visible { border-color:var(--interactive-accent); background:var(--background-modifier-hover); }
+.pfh-pdf-item .pfh-picker-text { min-width:0; }.pfh-pdf-item strong,.pfh-pdf-item small { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.pfh-pdf-limit { padding:10px; color:var(--text-muted); text-align:center; font-size:11px; }
 .pointix-file-shell { display:grid; place-items:center; min-height:100%; padding:24px; background:radial-gradient(circle at 50% 20%,color-mix(in srgb,var(--interactive-accent) 10%,transparent),transparent 40%); }
 .pfs-panel { width:min(680px,100%); padding:clamp(24px,5vw,46px); text-align:center; border:1px solid var(--pfh-border,var(--background-modifier-border)); border-radius:24px; background:var(--background-secondary); box-shadow:0 24px 70px rgba(0,0,0,.12); }
 .pfs-visual { position:relative; display:grid; place-items:center; width:96px; height:112px; margin:0 auto 24px; border-radius:14px 24px 14px 14px; color:var(--interactive-accent); background:color-mix(in srgb,var(--interactive-accent) 13%,var(--background-primary)); }
