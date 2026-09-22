@@ -1,7 +1,7 @@
 {
   "id": "pointix-file-hub",
   "name": "Pointix File Hub",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "minAppVersion": "1.5.0",
   "description": "Create, organize and open notes, Office documents, data files and visual canvases from one polished hub.",
   "author": "ExplorerAS",
