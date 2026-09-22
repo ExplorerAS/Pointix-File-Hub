@@ -97,3 +97,17 @@ test("Excel creation performs exactly one binary file write", async () => {
   assert.equal(writes[0].filePath, "Prueba.xlsx");
   assert.ok(writes[0].size > 4000);
 });
+
+test("Excalidraw uses a deterministic file instead of a guessed command", () => {
+  const source = fs.readFileSync(path.join(root, "main.js"), "utf8");
+  assert.match(source, /ext: "excalidraw\.md"/);
+  assert.match(source, /excalidraw-plugin: parsed/);
+  assert.doesNotMatch(source, /integration: \["excalidraw"\]/);
+});
+
+test("text formats use the internal Pointix editor", () => {
+  const source = fs.readFileSync(path.join(root, "main.js"), "utf8");
+  assert.match(source, /\["json", "txt", "csv", "html"/);
+  assert.match(source, /renderTextEditor/);
+  assert.match(source, /JSON\.parse\(editor\.value\)/);
+});
