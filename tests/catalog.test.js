@@ -130,8 +130,20 @@ test("smart note pack provides structured Markdown templates", () => {
   assert.equal(smartTypes.length, 8);
   for (const type of smartTypes) {
     assert.equal(type.ext, "md");
-    assert.match(type.content({ title: "Prueba" }), /pointix-type:/);
+    const content = type.content({ title: "Prueba" });
+    assert.match(content, /pointix-type:/);
+    assert.match(content, /> \[!(info|abstract|todo|quote|tip|danger)\]/);
+    assert.match(content, /## /);
   }
+});
+
+test("PDF picker opens existing vault files without copying or importing", () => {
+  const source = fs.readFileSync(path.join(root, "main.js"), "utf8");
+  assert.match(source, /class PdfPickerModal/);
+  assert.match(source, /vault\.getFiles\(\)/);
+  assert.match(source, /extension\?\.toLowerCase\(\) === "pdf"/);
+  assert.match(source, /getLeaf\("tab"\)\.openFile\(file\)/);
+  assert.doesNotMatch(source, /adapter\.list|adapter\.copy|copyFile|copyFolder/);
 });
 
 test("text formats use the internal Pointix editor", () => {
