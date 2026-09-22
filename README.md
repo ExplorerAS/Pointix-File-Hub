@@ -13,6 +13,10 @@ Un centro visual para crear, organizar y abrir distintos tipos de archivo sin pe
 - Sin telemetría, cuentas ni conexiones de red.
 - Diseño adaptable para escritorio y móvil.
 
+### Corrección de seguridad 0.1.1
+
+Las plantillas de Office se validan como archivos reales con la extensión correspondiente. Las carpetas y las rutas incompatibles se rechazan antes de cualquier operación de copia.
+
 ## Instalación para pruebas
 
 ### BRAT
