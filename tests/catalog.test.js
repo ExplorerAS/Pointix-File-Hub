@@ -98,11 +98,40 @@ test("Excel creation performs exactly one binary file write", async () => {
   assert.ok(writes[0].size > 4000);
 });
 
-test("Excalidraw uses a deterministic file instead of a guessed command", () => {
-  const source = fs.readFileSync(path.join(root, "main.js"), "utf8");
-  assert.match(source, /ext: "excalidraw\.md"/);
-  assert.match(source, /excalidraw-plugin: parsed/);
-  assert.doesNotMatch(source, /integration: \["excalidraw"\]/);
+test("Excalidraw uses the official automation API and performs no manual write", async () => {
+  const PluginClass = loadPlugin();
+  const plugin = new PluginClass();
+  const calls = [];
+  plugin.settings = { defaultFolder: "", recentIds: [], favoriteIds: [], openAfterCreate: true, enabledPacks: [] };
+  plugin.creationLocks = new Set();
+  plugin.remember = async () => {};
+  plugin.app = {
+    vault: {
+      getAbstractFileByPath: (filePath) => filePath === "Dibujo.excalidraw.md" ? { path: filePath } : null,
+      create: async () => { throw new Error("Pointix must let Excalidraw create its own file"); },
+      createBinary: async () => { throw new Error("Excalidraw is not an Office file"); },
+    },
+  };
+  globalThis.ExcalidrawAutomate = { getAPI: () => ({ create: async (options) => { calls.push(options); return "Dibujo.excalidraw.md"; } }) };
+  try {
+    const result = await plugin.createFile({ id: "excalidraw", name: "Dibujo Excalidraw", ext: "excalidraw.md", excalidraw: true }, "Dibujo", "");
+    assert.equal(result.path, "Dibujo.excalidraw.md");
+    assert.deepEqual(calls, [{ filename: "Dibujo", foldername: undefined, onNewPane: true, silent: false }]);
+  } finally {
+    delete globalThis.ExcalidrawAutomate;
+  }
+});
+
+test("smart note pack provides structured Markdown templates", () => {
+  const PluginClass = loadPlugin();
+  const { FILE_TYPES, PACKS } = PluginClass.__test;
+  const smartTypes = FILE_TYPES.filter((type) => type.pack === "smart-notes");
+  assert.ok(PACKS.some((pack) => pack.id === "smart-notes"));
+  assert.equal(smartTypes.length, 8);
+  for (const type of smartTypes) {
+    assert.equal(type.ext, "md");
+    assert.match(type.content({ title: "Prueba" }), /pointix-type:/);
+  }
 });
 
 test("text formats use the internal Pointix editor", () => {
