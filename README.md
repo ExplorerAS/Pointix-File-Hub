@@ -12,6 +12,8 @@ Un centro visual para crear, organizar y abrir distintos tipos de archivo sin pe
 - Documentos Word, Excel y PowerPoint mediante plantillas internas controladas.
 - Paquetes configurables para mostrar solo las familias de archivos que cada persona necesita.
 - Ocho notas inteligentes: reunión, proyecto, tarea, diario, idea, cliente, incidencia y factura.
+- Plantillas enriquecidas con etapas, tablas, responsables, criterios y bloques visuales adaptados a cada tipo de nota.
+- Buscador de PDF dentro de la bóveda con apertura directa en el visor nativo de Obsidian.
 - Vista **File Shell** para archivos que se editan con una aplicación externa.
 - Favoritos, búsqueda, categorías y archivos recientes.
 - Sin telemetría, cuentas ni conexiones de red.
@@ -55,6 +57,10 @@ Esta es una beta privada para pruebas. La publicación en Obsidian Community se 
 ## Ideas, sugerencias y soporte
 
 Puedes abrir una [idea o reporte en GitHub](https://github.com/ExplorerAS/Pointix-File-Hub/issues) o escribir a [servicios.globix@gmail.com](mailto:servicios.globix@gmail.com). Consulta también [SUPPORT.md](SUPPORT.md).
+
+## Apoyar el proyecto
+
+Si Pointix File Hub te resulta útil, puedes [invitarnos un café en Ko-fi](https://ko-fi.com/exprorerit). Tu apoyo ayuda a mantener el complemento privado, seguro y accesible para la comunidad.
 
 ## Licencia
 
