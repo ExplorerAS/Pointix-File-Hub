@@ -35,15 +35,16 @@ const OFFICE_TEMPLATES = Object.freeze({
 
 const FILE_TYPES = [
   { id: "markdown", name: "Nota", description: "Markdown nativo y conectado", ext: "md", icon: "notebook-pen", category: "Notas", color: "violet", content: ({ title }) => `# ${title}\n\n` },
-  { id: "meeting-note", name: "Nota de reunión", description: "Agenda, asistentes, acuerdos y próximas acciones", ext: "md", icon: "users", category: "Plantillas", pack: "smart-notes", color: "violet", content: ({ title }) => smartNote("reunion", title, `## Objetivo\n\n## Asistentes\n\n- \n\n## Agenda\n\n- \n\n## Acuerdos\n\n- [ ] \n\n## Próximas acciones\n\n- [ ] `) },
-  { id: "project-note", name: "Nota de proyecto", description: "Objetivo, estado, hitos, tareas y recursos", ext: "md", icon: "folder-kanban", category: "Plantillas", pack: "smart-notes", color: "blue", content: ({ title }) => smartNote("proyecto", title, `## Objetivo\n\n## Estado\n\n## Hitos\n\n- [ ] \n\n## Tareas\n\n- [ ] \n\n## Recursos\n\n- `) },
-  { id: "task-note", name: "Nota de tarea", description: "Prioridad, fecha, contexto y lista de pasos", ext: "md", icon: "circle-check-big", category: "Plantillas", pack: "smart-notes", color: "emerald", content: ({ title }) => smartNote("tarea", title, `## Resultado esperado\n\n## Pasos\n\n- [ ] \n\n## Contexto y recursos\n\n`) },
-  { id: "daily-note", name: "Nota de diario", description: "Enfoque del día, registro, pendientes y reflexión", ext: "md", icon: "calendar-days", category: "Plantillas", pack: "smart-notes", color: "amber", content: ({ title }) => smartNote("diario", title, `## Enfoque de hoy\n\n- \n\n## Registro\n\n## Pendientes\n\n- [ ] \n\n## Reflexión\n\n`) },
-  { id: "idea-note", name: "Idea / Brainstorm", description: "Captura una idea, sus posibilidades y siguientes pasos", ext: "md", icon: "lightbulb", category: "Plantillas", pack: "smart-notes", color: "orange", content: ({ title }) => smartNote("idea", title, `## Idea\n\n## ¿Por qué importa?\n\n## Posibilidades\n\n- \n\n## Siguiente experimento\n\n- [ ] `) },
-  { id: "client-note", name: "Nota de cliente", description: "Contacto, necesidades, historial y próximos pasos", ext: "md", icon: "contact", category: "Plantillas", pack: "smart-notes", color: "blue", content: ({ title }) => smartNote("cliente", title, `## Datos de contacto\n\n## Necesidades\n\n## Historial\n\n## Servicios\n\n- \n\n## Próximo paso\n\n- [ ] `) },
-  { id: "ticket-note", name: "Incidencia / Ticket", description: "Problema, impacto, diagnóstico, estado y solución", ext: "md", icon: "ticket-check", category: "Plantillas", pack: "smart-notes", color: "pink", content: ({ title }) => smartNote("incidencia", title, `## Descripción\n\n## Impacto\n\n## Diagnóstico\n\n## Solución\n\n## Seguimiento\n\n- [ ] `) },
-  { id: "invoice-note", name: "Nota de factura", description: "Control de conceptos, importes, vencimiento y estado", ext: "md", icon: "receipt-text", category: "Plantillas", pack: "smart-notes", color: "emerald", content: ({ title }) => smartNote("factura", title, `## Cliente\n\n## Conceptos\n\n| Concepto | Cantidad | Precio | Total |\n|---|---:|---:|---:|\n|  | 1 | 0 | 0 |\n\n## Totales\n\n**Total:** 0\n\n## Seguimiento\n\n- [ ] `) },
+  { id: "meeting-note", name: "Nota de reunión", description: "Agenda, decisiones, responsables y seguimiento", ext: "md", icon: "users", category: "Plantillas", pack: "smart-notes", color: "violet", content: ({ title }) => smartNote("reunion", title, `> [!info] Ficha de la reunión\n> **Fecha:** ${today()}  ·  **Hora:**  ·  **Lugar / enlace:**  ·  **Facilitador:**\n\n## Propósito y resultado esperado\n\n> Resume en una frase por qué existe esta reunión y qué debe quedar resuelto.\n\n## Participantes\n\n| Persona | Rol | Presente |\n|---|---|:---:|\n|  |  | ☐ |\n\n## Agenda\n\n1. \n2. \n\n## Notas clave\n\n- \n\n## Decisiones\n\n| Decisión | Motivo | Responsable |\n|---|---|---|\n|  |  |  |\n\n## Acciones acordadas\n\n- [ ] Acción — **Responsable:**  — **Fecha:**\n\n## Seguimiento\n\n> [!success] Cierre\n> Registra aquí la conclusión y la fecha de la próxima revisión.`) },
+  { id: "project-note", name: "Nota de proyecto", description: "Visión, etapas, hitos, riesgos y próximos pasos", ext: "md", icon: "folder-kanban", category: "Plantillas", pack: "smart-notes", color: "blue", content: ({ title }) => smartNote("proyecto", title, `> [!abstract] Resumen ejecutivo\n> **Etapa:** Descubrimiento  ·  **Responsable:**  ·  **Inicio:** ${today()}  ·  **Objetivo:**\n\n## Visión y alcance\n\n### Resultado esperado\n\n### Incluye\n\n- \n\n### Fuera de alcance\n\n- \n\n## Ruta del proyecto\n\n| Etapa | Entregable | Estado | Fecha |\n|---|---|---|---|\n| Descubrimiento | Definición y requisitos | 🟡 En curso |  |\n| Ejecución | Entregable principal | ⚪ Pendiente |  |\n| Validación | Pruebas y aprobación | ⚪ Pendiente |  |\n| Cierre | Documentación y entrega | ⚪ Pendiente |  |\n\n## Tareas activas\n\n- [ ] Próxima acción — **Responsable:**  — **Fecha:**\n\n## Riesgos y decisiones\n\n| Tipo | Detalle | Impacto | Respuesta |\n|---|---|---|---|\n| Riesgo |  |  |  |\n\n## Recursos relacionados\n\n- \n\n## Registro de avances\n\n### ${today()}\n\n- `) },
+  { id: "task-note", name: "Nota de tarea", description: "Resultado, prioridad, ejecución y comprobación final", ext: "md", icon: "circle-check-big", category: "Plantillas", pack: "smart-notes", color: "emerald", content: ({ title }) => smartNote("tarea", title, `> [!todo] Control de la tarea\n> **Estado:** Pendiente  ·  **Prioridad:** Media  ·  **Responsable:**  ·  **Vence:**\n\n## Resultado terminado\n\n> Describe cómo sabrás que esta tarea quedó realmente completa.\n\n## Contexto\n\n- **Origen:**\n- **Relacionado con:**\n- **Bloqueos:** Ninguno\n\n## Plan de ejecución\n\n- [ ] Preparar\n- [ ] Ejecutar\n- [ ] Revisar\n- [ ] Entregar o comunicar\n\n## Recursos y notas\n\n- \n\n## Criterios de aceptación\n\n- [ ] El resultado cumple lo solicitado\n- [ ] Se verificó antes de cerrar\n- [ ] Se documentó lo necesario\n\n> [!success] Cierre\n> **Completada:**  ·  **Resultado / evidencia:**`) },
+  { id: "daily-note", name: "Nota de diario", description: "Intención, agenda, registro y cierre consciente", ext: "md", icon: "calendar-days", category: "Plantillas", pack: "smart-notes", color: "amber", content: ({ title }) => smartNote("diario", title, `> [!quote] ${today()}\n> **Intención del día:**\n\n## Tres prioridades\n\n- [ ] 1.\n- [ ] 2.\n- [ ] 3.\n\n## Agenda y compromisos\n\n| Hora | Actividad | Preparación |\n|---:|---|---|\n|  |  |  |\n\n## Registro del día\n\n### Mañana\n\n### Tarde\n\n### Noche\n\n## Capturas rápidas\n\n- **Idea:**\n- **Pendiente:**\n- **Aprendizaje:**\n\n## Cierre\n\n- **Lo mejor de hoy:**\n- **Qué puedo mejorar:**\n- **Qué pasa a mañana:**`) },
+  { id: "idea-note", name: "Idea / Brainstorm", description: "Explora, evalúa y convierte una idea en experimento", ext: "md", icon: "lightbulb", category: "Plantillas", pack: "smart-notes", color: "orange", content: ({ title }) => smartNote("idea", title, `> [!tip] Idea central\n> Explícala en una frase clara, sin intentar perfeccionarla todavía.\n\n## Problema u oportunidad\n\n- **Para quién:**\n- **Qué sucede hoy:**\n- **Por qué importa:**\n\n## Exploración libre\n\n- \n- \n- \n\n## Alternativas\n\n| Opción | Valor | Esfuerzo | Riesgo |\n|---|---:|---:|---:|\n|  | Alto / Medio / Bajo | Alto / Medio / Bajo | Alto / Medio / Bajo |\n\n## La apuesta\n\n> Si hacemos **___**, entonces **___**, porque **___**.\n\n## Experimento mínimo\n\n- [ ] Acción más pequeña para validar la idea\n- **Señal de éxito:**\n- **Fecha de revisión:**\n\n## Conexiones\n\n- [[ ]]`) },
+  { id: "client-note", name: "Nota de cliente", description: "Relación, necesidades, servicios e historial organizado", ext: "md", icon: "contact", category: "Plantillas", pack: "smart-notes", color: "blue", content: ({ title }) => smartNote("cliente", title, `> [!info] Ficha del cliente\n> **Estado:** Prospecto  ·  **Responsable:**  ·  **Último contacto:** ${today()}\n\n## Contactos\n\n| Nombre | Cargo | Correo | Teléfono | Preferencia |\n|---|---|---|---|---|\n|  |  |  |  |  |\n\n## Perfil y contexto\n\n- **Organización:**\n- **Sector:**\n- **Necesidad principal:**\n- **Objetivo del cliente:**\n\n## Servicios y acuerdos\n\n| Servicio | Estado | Inicio | Renovación |\n|---|---|---|---|\n|  |  |  |  |\n\n## Historial\n\n### ${today()} — Primer registro\n\n- \n\n## Compromisos y próximos pasos\n\n- [ ] Acción — **Responsable:**  — **Fecha:**\n\n> [!warning] Información sensible\n> Evita guardar contraseñas, datos bancarios o identificaciones personales en esta nota.`) },
+  { id: "ticket-note", name: "Incidencia / Ticket", description: "Impacto, diagnóstico, solución y aprendizaje", ext: "md", icon: "ticket-check", category: "Plantillas", pack: "smart-notes", color: "pink", content: ({ title }) => smartNote("incidencia", title, `> [!danger] Resumen de incidencia\n> **Estado:** Abierto  ·  **Severidad:** Media  ·  **Reportado:** ${today()}  ·  **Responsable:**\n\n## Impacto\n\n- **Personas o servicios afectados:**\n- **Desde cuándo:**\n- **Alcance:**\n\n## Comportamiento observado\n\n### Pasos para reproducir\n\n1. \n2. \n3. \n\n### Resultado esperado\n\n### Resultado actual\n\n## Evidencias\n\n- Captura, registro o enlace:\n\n## Diagnóstico\n\n| Hora | Hipótesis / acción | Resultado |\n|---:|---|---|\n|  |  |  |\n\n## Resolución\n\n- **Causa raíz:**\n- **Solución aplicada:**\n- **Verificación:**\n\n## Prevención y seguimiento\n\n- [ ] Acción preventiva — **Responsable:**  — **Fecha:**\n\n> [!success] Cierre\n> **Resuelto:**  ·  **Tiempo total:**  ·  **Aprendizaje:**`) },
+  { id: "invoice-note", name: "Nota de factura", description: "Control administrativo de importes, vencimiento y cobro", ext: "md", icon: "receipt-text", category: "Plantillas", pack: "smart-notes", color: "emerald", content: ({ title }) => smartNote("factura", title, `> [!info] Control de factura\n> **Estado:** Borrador  ·  **Emisión:** ${today()}  ·  **Vencimiento:**  ·  **Moneda:**\n\n## Cliente\n\n- **Nombre / razón social:**\n- **Referencia:**\n- **Contacto:**\n\n## Conceptos\n\n| Concepto | Cantidad | Precio unitario | Impuesto | Total |\n|---|---:|---:|---:|---:|\n|  | 1 | 0.00 | 0.00 | 0.00 |\n\n## Resumen\n\n|  | Importe |\n|---|---:|\n| Subtotal | 0.00 |\n| Impuestos | 0.00 |\n| **Total** | **0.00** |\n\n## Seguimiento de cobro\n\n| Fecha | Evento | Nota |\n|---|---|---|\n| ${today()} | Creación |  |\n\n- [ ] Enviar factura\n- [ ] Confirmar recepción\n- [ ] Registrar pago\n\n> [!warning] Uso administrativo\n> Esta nota ayuda a organizar el seguimiento; no sustituye el documento fiscal oficial.`) },
   { id: "text", name: "Texto", description: "Texto plano universal", ext: "txt", icon: "text", category: "Notas", color: "blue", viewer: true, content: () => "" },
+  { id: "open-pdf", name: "Abrir PDF", description: "Busca un PDF de tu bóveda y ábrelo en Obsidian", ext: "pdf", icon: "file-search", category: "Notas", color: "orange", action: "open-pdf" },
   { id: "canvas", name: "Canvas", description: "Lienzo visual de Obsidian", ext: "canvas", icon: "layout-dashboard", category: "Visual", color: "pink", content: () => '{\n  "nodes": [],\n  "edges": []\n}\n' },
   { id: "base", name: "Base", description: "Vista de datos nativa", ext: "base", icon: "database", category: "Datos", color: "emerald", content: () => "views:\n  - type: table\n    name: Table\n" },
   { id: "csv", name: "Tabla CSV", description: "Datos compatibles con hojas de cálculo", ext: "csv", icon: "table-2", category: "Datos", color: "emerald", viewer: true, content: () => "Columna 1,Columna 2,Columna 3\n" },
@@ -60,6 +61,10 @@ function smartNote(type, title, body) {
   const safeTitle = String(title).replace(/\\/g, "\\\\").replace(/"/g, '\\"');
   const date = new Date().toISOString().slice(0, 10);
   return `---\ntitle: "${safeTitle}"\npointix-type: ${type}\ncreated: ${date}\nstatus: activo\ntags: []\n---\n\n# ${title}\n\n${body}\n`;
+}
+
+function today() {
+  return new Date().toISOString().slice(0, 10);
 }
 
 function packIdFor(type) {
@@ -108,6 +113,7 @@ class PointixFileHubPlugin extends Plugin {
     this.addRibbonIcon("files", "Abrir Pointix File Hub", () => this.openHub());
     this.addCommand({ id: "open-file-hub", name: "Abrir selector de archivos", callback: () => this.openHub() });
     this.addCommand({ id: "create-from-file-hub", name: "Crear archivo…", callback: () => new CreateFileModal(this.app, this).open() });
+    this.addCommand({ id: "open-pdf-from-file-hub", name: "Buscar y abrir PDF…", callback: () => new PdfPickerModal(this.app, this).open() });
 
     this.registerEvent(this.app.workspace.on("file-menu", (menu, file) => {
       if (!file || !file.extension || file.extension === "md") return;
@@ -186,6 +192,10 @@ class PointixFileHubPlugin extends Plugin {
   }
 
   async beginCreate(type) {
+    if (type.action === "open-pdf") {
+      new PdfPickerModal(this.app, this).open();
+      return;
+    }
     const integration = this.findIntegration(type);
     if (integration) {
       this.remember(type.id);
@@ -393,7 +403,7 @@ class FileHubView extends ItemView {
     card.className = `pfh-card pfh-${type.color}`;
     card.tabIndex = 0;
     card.setAttribute("role", "button");
-    card.setAttribute("aria-label", `Crear ${type.name}`);
+    card.setAttribute("aria-label", type.action === "open-pdf" ? type.name : `Crear ${type.name}`);
     const top = card.createDiv("pfh-card-top");
     const icon = top.createDiv("pfh-card-icon");
     setIcon(icon, type.icon);
@@ -404,7 +414,7 @@ class FileHubView extends ItemView {
     card.createEl("p", { text: type.description });
     const footer = card.createDiv("pfh-card-footer");
     footer.createSpan({ cls: `pfh-status is-${availability.state}`, text: availability.label });
-    footer.createSpan({ cls: "pfh-extension", text: `.${type.ext}` });
+    footer.createSpan({ cls: "pfh-extension", text: type.action === "open-pdf" ? "Buscar y abrir" : `.${type.ext}` });
     const activate = () => this.plugin.beginCreate(type);
     card.addEventListener("click", activate);
     card.addEventListener("keydown", (event) => { if (event.key === "Enter" || event.key === " ") activate(); });
@@ -505,6 +515,50 @@ class FileShellView extends ItemView {
   }
 }
 
+class PdfPickerModal extends Modal {
+  constructor(app, plugin) { super(app); this.plugin = plugin; this.query = ""; }
+  onOpen() {
+    this.modalEl.addClass("pfh-pdf-modal");
+    const { contentEl } = this;
+    contentEl.createEl("h2", { text: "Abrir un PDF de tu bóveda" });
+    contentEl.createEl("p", { text: "Busca por nombre o carpeta. Pointix no mueve ni copia el archivo: Obsidian lo abre directamente desde su ubicación actual." });
+    const searchWrap = contentEl.createDiv("pfh-search pfh-pdf-search");
+    searchWrap.append(createIcon("search"));
+    const search = searchWrap.createEl("input", { attr: { type: "search", placeholder: "Buscar PDF o carpeta…", "aria-label": "Buscar PDF" } });
+    const results = contentEl.createDiv("pfh-pdf-results");
+    const allPdfs = this.app.vault.getFiles()
+      .filter((file) => file.extension?.toLowerCase() === "pdf")
+      .sort((a, b) => a.path.localeCompare(b.path));
+
+    const render = () => {
+      results.empty();
+      const query = this.query.trim().toLowerCase();
+      const matches = allPdfs.filter((file) => !query || file.path.toLowerCase().includes(query));
+      if (!matches.length) {
+        results.createDiv({ cls: "pfh-empty", text: allPdfs.length ? "No encontramos un PDF con ese nombre o ruta." : "Todavía no hay archivos PDF dentro de esta bóveda." });
+        return;
+      }
+      matches.slice(0, 200).forEach((file) => {
+        const button = results.createEl("button", { cls: "pfh-pdf-item", attr: { "aria-label": `Abrir ${file.path}` } });
+        const icon = button.createSpan("pfh-picker-icon");
+        setIcon(icon, "file-text");
+        const labels = button.createSpan("pfh-picker-text");
+        labels.createEl("strong", { text: file.name });
+        labels.createEl("small", { text: file.parent?.path || "Raíz de la bóveda" });
+        button.addEventListener("click", async () => {
+          this.close();
+          await this.app.workspace.getLeaf("tab").openFile(file);
+        });
+      });
+      if (matches.length > 200) results.createDiv({ cls: "pfh-pdf-limit", text: `Mostrando 200 de ${matches.length} resultados. Escribe parte del nombre o de la carpeta para precisar la búsqueda.` });
+    };
+    search.addEventListener("input", () => { this.query = search.value; render(); });
+    render();
+    setTimeout(() => search.focus(), 50);
+  }
+  onClose() { this.contentEl.empty(); }
+}
+
 class NameFileModal extends Modal {
   constructor(app, plugin, type) { super(app); this.plugin = plugin; this.type = type; }
   onOpen() {
@@ -580,6 +634,10 @@ class PointixFileHubSettingTab extends PluginSettingTab {
             await this.plugin.saveSettings();
           }));
     });
+    containerEl.createEl("h3", { text: "Apoyar Pointix" });
+    const support = containerEl.createEl("p", { text: "Si Pointix File Hub te ahorra tiempo, puedes apoyar su desarrollo e invitar al proyecto un café en " });
+    support.createEl("a", { text: "Ko-fi", href: "https://ko-fi.com/exprorerit" });
+    support.appendText(". Gracias por ayudarnos a mantenerlo útil, privado y accesible para la comunidad.");
   }
 }
 
@@ -607,4 +665,4 @@ function formatBytes(bytes) {
 }
 
 module.exports = PointixFileHubPlugin;
-PointixFileHubPlugin.__test = { safeFolder, safeName, base64ToArrayBuffer, OFFICE_TEMPLATES, FILE_TYPES, PACKS, packIdFor, smartNote };
+PointixFileHubPlugin.__test = { safeFolder, safeName, base64ToArrayBuffer, OFFICE_TEMPLATES, FILE_TYPES, PACKS, packIdFor, smartNote, today };
