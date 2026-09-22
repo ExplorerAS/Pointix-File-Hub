@@ -11,11 +11,20 @@ const {
 
 const HUB_VIEW = "pointix-file-hub-view";
 const SHELL_VIEW = "pointix-file-shell-view";
+const PACKS = Object.freeze([
+  { id: "essentials", name: "Esenciales", description: "Notas, texto y herramientas nativas de Obsidian." },
+  { id: "smart-notes", name: "Notas inteligentes", description: "Plantillas útiles con estructura y propiedades listas para trabajar." },
+  { id: "office", name: "Oficina", description: "Word, Excel, PowerPoint y hojas de cálculo." },
+  { id: "data", name: "Datos", description: "Bases, CSV y formatos estructurados." },
+  { id: "code", name: "Código", description: "Archivos web, configuración y desarrollo." },
+  { id: "visual", name: "Visual", description: "Canvas, Excalidraw y herramientas de diagramación." },
+]);
 const DEFAULT_SETTINGS = {
   defaultFolder: "",
   favoriteIds: ["markdown", "canvas", "docx", "xlsx"],
   recentIds: [],
   openAfterCreate: true,
+  enabledPacks: PACKS.map((pack) => pack.id),
 };
 
 const OFFICE_TEMPLATES = Object.freeze({
@@ -26,6 +35,14 @@ const OFFICE_TEMPLATES = Object.freeze({
 
 const FILE_TYPES = [
   { id: "markdown", name: "Nota", description: "Markdown nativo y conectado", ext: "md", icon: "notebook-pen", category: "Notas", color: "violet", content: ({ title }) => `# ${title}\n\n` },
+  { id: "meeting-note", name: "Nota de reunión", description: "Agenda, asistentes, acuerdos y próximas acciones", ext: "md", icon: "users", category: "Plantillas", pack: "smart-notes", color: "violet", content: ({ title }) => smartNote("reunion", title, `## Objetivo\n\n## Asistentes\n\n- \n\n## Agenda\n\n- \n\n## Acuerdos\n\n- [ ] \n\n## Próximas acciones\n\n- [ ] `) },
+  { id: "project-note", name: "Nota de proyecto", description: "Objetivo, estado, hitos, tareas y recursos", ext: "md", icon: "folder-kanban", category: "Plantillas", pack: "smart-notes", color: "blue", content: ({ title }) => smartNote("proyecto", title, `## Objetivo\n\n## Estado\n\n## Hitos\n\n- [ ] \n\n## Tareas\n\n- [ ] \n\n## Recursos\n\n- `) },
+  { id: "task-note", name: "Nota de tarea", description: "Prioridad, fecha, contexto y lista de pasos", ext: "md", icon: "circle-check-big", category: "Plantillas", pack: "smart-notes", color: "emerald", content: ({ title }) => smartNote("tarea", title, `## Resultado esperado\n\n## Pasos\n\n- [ ] \n\n## Contexto y recursos\n\n`) },
+  { id: "daily-note", name: "Nota de diario", description: "Enfoque del día, registro, pendientes y reflexión", ext: "md", icon: "calendar-days", category: "Plantillas", pack: "smart-notes", color: "amber", content: ({ title }) => smartNote("diario", title, `## Enfoque de hoy\n\n- \n\n## Registro\n\n## Pendientes\n\n- [ ] \n\n## Reflexión\n\n`) },
+  { id: "idea-note", name: "Idea / Brainstorm", description: "Captura una idea, sus posibilidades y siguientes pasos", ext: "md", icon: "lightbulb", category: "Plantillas", pack: "smart-notes", color: "orange", content: ({ title }) => smartNote("idea", title, `## Idea\n\n## ¿Por qué importa?\n\n## Posibilidades\n\n- \n\n## Siguiente experimento\n\n- [ ] `) },
+  { id: "client-note", name: "Nota de cliente", description: "Contacto, necesidades, historial y próximos pasos", ext: "md", icon: "contact", category: "Plantillas", pack: "smart-notes", color: "blue", content: ({ title }) => smartNote("cliente", title, `## Datos de contacto\n\n## Necesidades\n\n## Historial\n\n## Servicios\n\n- \n\n## Próximo paso\n\n- [ ] `) },
+  { id: "ticket-note", name: "Incidencia / Ticket", description: "Problema, impacto, diagnóstico, estado y solución", ext: "md", icon: "ticket-check", category: "Plantillas", pack: "smart-notes", color: "pink", content: ({ title }) => smartNote("incidencia", title, `## Descripción\n\n## Impacto\n\n## Diagnóstico\n\n## Solución\n\n## Seguimiento\n\n- [ ] `) },
+  { id: "invoice-note", name: "Nota de factura", description: "Control de conceptos, importes, vencimiento y estado", ext: "md", icon: "receipt-text", category: "Plantillas", pack: "smart-notes", color: "emerald", content: ({ title }) => smartNote("factura", title, `## Cliente\n\n## Conceptos\n\n| Concepto | Cantidad | Precio | Total |\n|---|---:|---:|---:|\n|  | 1 | 0 | 0 |\n\n## Totales\n\n**Total:** 0\n\n## Seguimiento\n\n- [ ] `) },
   { id: "text", name: "Texto", description: "Texto plano universal", ext: "txt", icon: "text", category: "Notas", color: "blue", viewer: true, content: () => "" },
   { id: "canvas", name: "Canvas", description: "Lienzo visual de Obsidian", ext: "canvas", icon: "layout-dashboard", category: "Visual", color: "pink", content: () => '{\n  "nodes": [],\n  "edges": []\n}\n' },
   { id: "base", name: "Base", description: "Vista de datos nativa", ext: "base", icon: "database", category: "Datos", color: "emerald", content: () => "views:\n  - type: table\n    name: Table\n" },
@@ -36,8 +53,19 @@ const FILE_TYPES = [
   { id: "xlsx", name: "Libro de Excel", description: "Microsoft Excel o editor compatible", ext: "xlsx", icon: "sheet", category: "Office", color: "emerald", office: true },
   { id: "pptx", name: "Presentación", description: "PowerPoint o editor compatible", ext: "pptx", icon: "presentation", category: "Office", color: "orange", office: true },
   { id: "univer", name: "Hoja Sheet Plus", description: "Libro editable dentro de Obsidian", ext: "univer", icon: "table-properties", category: "Office", color: "green", integration: ["sheet", "excel", "univer"] },
-  { id: "excalidraw", name: "Dibujo Excalidraw", description: "Pizarra y diagramación", ext: "excalidraw.md", icon: "pen-tool", category: "Visual", color: "pink", pluginId: "obsidian-excalidraw-plugin", openNative: true, content: () => `---\nexcalidraw-plugin: parsed\ntags: [excalidraw]\n---\n==⚠  Switch to EXCALIDRAW VIEW in the MORE OPTIONS menu of this document. ⚠==\n\n# Text Elements\n\n# Embedded files\n\n# Drawing\n\`\`\`json\n{\"type\":\"excalidraw\",\"version\":2,\"source\":\"https://github.com/zsviczian/obsidian-excalidraw-plugin/releases/tag/2.0.0\",\"elements\":[],\"appState\":{\"gridSize\":null,\"viewBackgroundColor\":\"#ffffff\"},\"files\":{}}\n\`\`\`\n` },
+  { id: "excalidraw", name: "Dibujo Excalidraw", description: "Pizarra y diagramación con el complemento oficial", ext: "excalidraw.md", icon: "pen-tool", category: "Visual", color: "pink", pluginId: "obsidian-excalidraw-plugin", excalidraw: true },
 ];
+
+function smartNote(type, title, body) {
+  const safeTitle = String(title).replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+  const date = new Date().toISOString().slice(0, 10);
+  return `---\ntitle: "${safeTitle}"\npointix-type: ${type}\ncreated: ${date}\nstatus: activo\ntags: []\n---\n\n# ${title}\n\n${body}\n`;
+}
+
+function packIdFor(type) {
+  if (type.pack) return type.pack;
+  return ({ Office: "office", Datos: "data", Código: "code", Visual: "visual" })[type.category] || "essentials";
+}
 
 function escapeHtml(value) {
   return String(value).replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" })[char]);
@@ -122,6 +150,11 @@ class PointixFileHubPlugin extends Plugin {
     return enabled ? Array.from(enabled) : [];
   }
 
+  enabledTypes() {
+    const enabled = new Set(this.settings.enabledPacks || DEFAULT_SETTINGS.enabledPacks);
+    return FILE_TYPES.filter((type) => enabled.has(packIdFor(type)));
+  }
+
   findIntegration(type) {
     if (!type.integration) return null;
     const terms = type.integration.map((term) => term.toLowerCase());
@@ -182,6 +215,13 @@ class PointixFileHubPlugin extends Plugin {
     let file;
     try {
       if (folder && !this.app.vault.getAbstractFileByPath(folder)) await this.ensureFolder(folder);
+      if (type.excalidraw) {
+        file = await this.createExcalidraw(name, folder);
+        if (!file) return null;
+        this.remember(type.id);
+        new Notice(`${type.name} creado: ${file.path}`);
+        return file;
+      }
       const path = await this.uniquePath(folder, name, type.ext);
       if (type.office) {
         const encoded = OFFICE_TEMPLATES[type.ext];
@@ -202,6 +242,26 @@ class PointixFileHubPlugin extends Plugin {
     } finally {
       this.creationLocks.delete(lockKey);
     }
+  }
+
+  async createExcalidraw(name, folder) {
+    const automate = globalThis.ExcalidrawAutomate;
+    if (!automate || typeof automate.getAPI !== "function") {
+      new Notice("Activa Excalidraw para crear y abrir un dibujo real.");
+      return null;
+    }
+    const api = automate.getAPI();
+    if (!api || typeof api.create !== "function") {
+      new Notice("Excalidraw está activo, pero su API todavía no está lista. Intenta de nuevo en unos segundos.");
+      return null;
+    }
+    const path = await api.create({
+      filename: name,
+      foldername: folder || undefined,
+      onNewPane: true,
+      silent: !this.settings.openAfterCreate,
+    });
+    return path ? this.app.vault.getAbstractFileByPath(path) : null;
   }
 
   async ensureFolder(folder) {
@@ -278,8 +338,8 @@ class FileHubView extends ItemView {
     const hero = root.createDiv("pfh-hero");
     const heroText = hero.createDiv("pfh-hero-text");
     heroText.createEl("div", { cls: "pfh-eyebrow", text: "POINTIX WORKSPACE" });
-    heroText.createEl("h1", { text: "¿Qué quieres crear?" });
-    heroText.createEl("p", { text: "Notas, documentos y datos sin abandonar tu hub." });
+    heroText.createEl("h1", { text: "Crea lo que necesites. Todo queda en su lugar." });
+    heroText.createEl("p", { text: "Desde una nota rápida hasta documentos de Office, datos, código o un lienzo visual: crea, organiza y abre todo desde tu bóveda sin perder el contexto de Obsidian." });
     const quick = hero.createEl("button", { cls: "mod-cta pfh-quick", text: "Crear archivo" });
     quick.prepend(createIcon("plus"));
     quick.addEventListener("click", () => new CreateFileModal(this.app, this.plugin).open());
@@ -292,7 +352,7 @@ class FileHubView extends ItemView {
     search.addEventListener("input", () => { this.query = search.value.toLowerCase(); this.renderGrid(root); });
 
     const chips = tools.createDiv("pfh-chips");
-    ["Todos", "Notas", "Office", "Datos", "Visual", "Código"].forEach((category) => {
+    ["Todos", "Notas", "Plantillas", "Office", "Datos", "Visual", "Código"].forEach((category) => {
       const chip = chips.createEl("button", { text: category, cls: this.category === category ? "is-active" : "" });
       chip.addEventListener("click", () => { this.category = category; this.render(); });
     });
@@ -303,14 +363,15 @@ class FileHubView extends ItemView {
   renderGrid(root) {
     root.querySelector(".pfh-content")?.remove();
     const content = root.createDiv("pfh-content");
-    const all = FILE_TYPES.filter((type) => {
+    const enabledTypes = this.plugin.enabledTypes();
+    const all = enabledTypes.filter((type) => {
       const categoryMatches = this.category === "Todos" || type.category === this.category;
       const searchMatches = !this.query || `${type.name} ${type.description} ${type.ext}`.toLowerCase().includes(this.query);
       return categoryMatches && searchMatches;
     });
 
     if (this.category === "Todos" && !this.query && this.plugin.settings.favoriteIds.length) {
-      this.renderSection(content, "Favoritos", "star", this.plugin.settings.favoriteIds.map((id) => FILE_TYPES.find((type) => type.id === id)).filter(Boolean));
+      this.renderSection(content, "Favoritos", "star", this.plugin.settings.favoriteIds.map((id) => enabledTypes.find((type) => type.id === id)).filter(Boolean));
     }
     this.renderSection(content, this.query ? "Resultados" : (this.category === "Todos" ? "Todos los formatos" : this.category), "layout-grid", all);
     if (!all.length) content.createDiv({ cls: "pfh-empty", text: "No encontramos ese formato." });
@@ -485,7 +546,7 @@ class CreateFileModal extends Modal {
     contentEl.createEl("h2", { text: "Crear nuevo archivo" });
     contentEl.createEl("p", { text: "Elige el formato; Pointix se encargará de la ruta correcta." });
     const grid = contentEl.createDiv("pfh-picker-grid");
-    FILE_TYPES.forEach((type) => {
+    this.plugin.enabledTypes().forEach((type) => {
       const button = grid.createEl("button", { cls: "pfh-picker-item" });
       const icon = button.createSpan("pfh-picker-icon"); setIcon(icon, type.icon);
       const text = button.createSpan("pfh-picker-text"); text.createEl("strong", { text: type.name }); text.createEl("small", { text: `.${type.ext}` });
@@ -504,6 +565,21 @@ class PointixFileHubSettingTab extends PluginSettingTab {
     containerEl.createEl("p", { text: "Configura dónde crear archivos. Las plantillas de Office son internas y no se copian carpetas ni archivos de tu bóveda." });
     new Setting(containerEl).setName("Carpeta predeterminada").setDesc("Ruta dentro de la bóveda para los archivos nuevos.").addText((text) => text.setPlaceholder("Documentos").setValue(this.plugin.settings.defaultFolder).onChange(async (value) => { this.plugin.settings.defaultFolder = value; await this.plugin.saveSettings(); }));
     new Setting(containerEl).setName("Abrir después de crear").setDesc("Abre el archivo nativo o su ficha de Pointix.").addToggle((toggle) => toggle.setValue(this.plugin.settings.openAfterCreate).onChange(async (value) => { this.plugin.settings.openAfterCreate = value; await this.plugin.saveSettings(); }));
+    containerEl.createEl("h3", { text: "Paquetes de creación" });
+    containerEl.createEl("p", { text: "Activa únicamente las familias de archivos que quieras ver en el Hub. Puedes cambiarlas cuando lo necesites." });
+    PACKS.forEach((pack) => {
+      new Setting(containerEl)
+        .setName(pack.name)
+        .setDesc(pack.description)
+        .addToggle((toggle) => toggle
+          .setValue((this.plugin.settings.enabledPacks || DEFAULT_SETTINGS.enabledPacks).includes(pack.id))
+          .onChange(async (value) => {
+            const active = new Set(this.plugin.settings.enabledPacks || DEFAULT_SETTINGS.enabledPacks);
+            if (value) active.add(pack.id); else active.delete(pack.id);
+            this.plugin.settings.enabledPacks = PACKS.map((item) => item.id).filter((id) => active.has(id));
+            await this.plugin.saveSettings();
+          }));
+    });
   }
 }
 
@@ -531,4 +607,4 @@ function formatBytes(bytes) {
 }
 
 module.exports = PointixFileHubPlugin;
-PointixFileHubPlugin.__test = { safeFolder, safeName, base64ToArrayBuffer, OFFICE_TEMPLATES };
+PointixFileHubPlugin.__test = { safeFolder, safeName, base64ToArrayBuffer, OFFICE_TEMPLATES, FILE_TYPES, PACKS, packIdFor, smartNote };
