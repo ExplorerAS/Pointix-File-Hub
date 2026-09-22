@@ -1,0 +1,37 @@
+name: Idea o mejora
+description: Propón una función que haga Pointix File Hub más útil para la comunidad.
+title: "[Idea]: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: need
+    attributes:
+      label: Necesidad
+      description: ¿Qué problema o trabajo quieres resolver?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Propuesta
+      description: Describe cómo te gustaría que funcionara dentro de Obsidian.
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Plataforma principal
+      options:
+        - Windows
+        - macOS
+        - Linux
+        - Android
+        - iOS / iPadOS
+        - Varias
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Privacidad
+      options:
+        - label: Confirmo que no incluí contraseñas, claves ni contenido privado.
+          required: true
