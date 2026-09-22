@@ -6,7 +6,9 @@ Un centro visual para crear, organizar y abrir distintos tipos de archivo sin pe
 
 - Selector visual desde la cinta lateral y la paleta de comandos.
 - Notas Markdown, texto, Canvas, Bases, CSV, JSON y HTML.
+- Editor interno Pointix para JSON, TXT, CSV y HTML, con validación de JSON.
 - Integración por detección con Sheet Plus y Excalidraw.
+- Creación determinista de archivos `.excalidraw.md`, sin ejecutar comandos ambiguos.
 - Documentos Word, Excel y PowerPoint mediante plantillas internas controladas.
 - Vista **File Shell** para archivos que se editan con una aplicación externa.
 - Favoritos, búsqueda, categorías y archivos recientes.
