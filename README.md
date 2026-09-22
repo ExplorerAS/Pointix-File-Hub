@@ -2,14 +2,16 @@
 
 Un centro visual para crear, organizar y abrir distintos tipos de archivo sin perder la sensación de estar dentro de Obsidian.
 
-## Beta 0.2
+## Beta 0.3
 
 - Selector visual desde la cinta lateral y la paleta de comandos.
 - Notas Markdown, texto, Canvas, Bases, CSV, JSON y HTML.
 - Editor interno Pointix para JSON, TXT, CSV y HTML, con validación de JSON.
-- Integración por detección con Sheet Plus y Excalidraw.
-- Creación determinista de archivos `.excalidraw.md`, sin ejecutar comandos ambiguos.
+- Integración por detección con Sheet Plus.
+- Creación y apertura de dibujos reales mediante la API oficial de Excalidraw.
 - Documentos Word, Excel y PowerPoint mediante plantillas internas controladas.
+- Paquetes configurables para mostrar solo las familias de archivos que cada persona necesita.
+- Ocho notas inteligentes: reunión, proyecto, tarea, diario, idea, cliente, incidencia y factura.
 - Vista **File Shell** para archivos que se editan con una aplicación externa.
 - Favoritos, búsqueda, categorías y archivos recientes.
 - Sin telemetría, cuentas ni conexiones de red.
@@ -49,6 +51,10 @@ Pointix File Hub trabaja exclusivamente con la bóveda local mediante las APIs d
 ## Estado
 
 Esta es una beta privada para pruebas. La publicación en Obsidian Community se preparará después de validar el flujo en Windows y Android.
+
+## Ideas, sugerencias y soporte
+
+Puedes abrir una [idea o reporte en GitHub](https://github.com/ExplorerAS/Pointix-File-Hub/issues) o escribir a [servicios.globix@gmail.com](mailto:servicios.globix@gmail.com). Consulta también [SUPPORT.md](SUPPORT.md).
 
 ## Licencia
 
