@@ -184,10 +184,37 @@ test("catalog exposes all nine configurable packs", () => {
 
 test("web integrations create linked Markdown instead of fake service files", () => {
   const PluginClass = loadPlugin();
-  const { FILE_TYPES } = PluginClass.__test;
+  const { FILE_TYPES, WEB_INTEGRATIONS } = PluginClass.__test;
   const webLinks = FILE_TYPES.filter((type) => type.action === "web-link");
-  assert.deepEqual(webLinks.map((type) => type.service), ["Figma", "Canva", "Google Sheets"]);
+  assert.equal(webLinks.length, 34);
+  assert.equal(webLinks.length, WEB_INTEGRATIONS.length);
+  for (const service of ["Microsoft Visio", "Yandex Boards", "Yandex Calendar", "Yandex Forms", "Google Sheets", "Canva", "Figma"]) {
+    assert.ok(webLinks.some((type) => type.service === service), `missing ${service}`);
+  }
   assert.ok(webLinks.every((type) => type.ext === "md"));
+  assert.ok(webLinks.every((type) => type.group && type.mode && type.domains?.length));
+  assert.equal(new Set(webLinks.map((type) => type.id)).size, webLinks.length);
+  assert.equal(new Set(webLinks.map((type) => type.service)).size, webLinks.length);
+});
+
+test("integration validation rejects login pages and wrong service domains", () => {
+  const PluginClass = loadPlugin();
+  const { WEB_INTEGRATIONS, validateIntegrationUrl } = PluginClass.__test;
+  const sheets = WEB_INTEGRATIONS.find((type) => type.service === "Google Sheets");
+  assert.equal(validateIntegrationUrl(sheets, "https://accounts.google.com/ServiceLogin").ok, false);
+  assert.equal(validateIntegrationUrl(sheets, "https://drive.google.com/drive/u/0/home").ok, false);
+  assert.equal(validateIntegrationUrl(sheets, "https://docs.google.com/spreadsheets/d/abc123/edit").ok, true);
+  const boards = WEB_INTEGRATIONS.find((type) => type.service === "Yandex Boards");
+  assert.equal(validateIntegrationUrl(boards, "https://boards.yandex.ru/project/example").ok, true);
+  assert.equal(validateIntegrationUrl(boards, "https://example.com/not-a-board").ok, false);
+});
+
+test("integration notes provide a safe external-browser recovery route", () => {
+  const source = fs.readFileSync(path.join(root, "main.js"), "utf8");
+  assert.match(source, /registerObsidianProtocolHandler\("pointix-open-web"/);
+  assert.match(source, /Abrir en navegador externo/);
+  assert.match(source, /error de acceso, 401 o inicio de sesión/);
+  assert.doesNotMatch(source, /password|contraseña.*addText/i);
 });
 
 test("text formats use the internal Pointix editor", () => {
