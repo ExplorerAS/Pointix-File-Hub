@@ -7,6 +7,7 @@ const {
   Setting,
   normalizePath,
   setIcon,
+  TFile,
 } = require("obsidian");
 
 const HUB_VIEW = "pointix-file-hub-view";
@@ -144,8 +145,13 @@ class PointixFileHubPlugin extends Plugin {
     if (type.office) {
       const template = normalizePath((this.settings.officeTemplates[type.ext] || "").trim());
       const source = template && this.app.vault.getAbstractFileByPath(template);
-      if (!source || !source.path) {
-        new Notice(`Configura una plantilla .${type.ext} válida en Pointix File Hub.`);
+      if (!(source instanceof TFile) || source.extension.toLowerCase() !== type.ext) {
+        console.error("Pointix File Hub: rejected unsafe Office template", { template, expectedExtension: type.ext });
+        new Notice(`La plantilla debe ser un archivo real .${type.ext}; las carpetas están bloqueadas por seguridad.`);
+        return null;
+      }
+      if (normalizePath(source.path) === normalizePath(path)) {
+        new Notice("La plantilla y el archivo nuevo no pueden tener la misma ruta.");
         return null;
       }
       await this.app.vault.adapter.copy(source.path, path);
@@ -365,7 +371,19 @@ class NameFileModal extends Modal {
     const cancel = buttons.createEl("button", { text: "Cancelar" });
     cancel.addEventListener("click", () => this.close());
     const create = buttons.createEl("button", { cls: "mod-cta", text: "Crear" });
-    create.addEventListener("click", async () => { const result = await this.plugin.createFile(this.type, name, folder); if (result) this.close(); });
+    create.addEventListener("click", async () => {
+      if (create.disabled) return;
+      create.disabled = true;
+      try {
+        const result = await this.plugin.createFile(this.type, name, folder);
+        if (result) this.close();
+      } catch (error) {
+        console.error("Pointix File Hub: file creation failed", error);
+        new Notice("No se pudo crear el archivo. No se realizó ninguna copia adicional.");
+      } finally {
+        create.disabled = false;
+      }
+    });
     setTimeout(() => contentEl.querySelector("input")?.select(), 50);
   }
   onClose() { this.contentEl.empty(); }
