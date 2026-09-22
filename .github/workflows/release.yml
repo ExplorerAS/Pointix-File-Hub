@@ -1,0 +1,28 @@
+name: Release Obsidian plugin
+
+on:
+  push:
+    tags:
+      - "*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm run verify
+      - name: Create release archive
+        run: zip pointix-file-hub-${{ github.ref_name }}.zip manifest.json main.js styles.css
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            manifest.json
+            main.js
+            styles.css
+            pointix-file-hub-${{ github.ref_name }}.zip
