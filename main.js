@@ -26,9 +26,12 @@ const DEFAULT_SETTINGS = {
   defaultFolder: "",
   favoriteIds: ["markdown", "canvas", "docx", "xlsx"],
   recentIds: [],
+  hiddenIds: [],
+  categoryOrder: {},
+  mobileView: "list",
   openAfterCreate: true,
   enabledPacks: PACKS.map((pack) => pack.id),
-  catalogVersion: 3,
+  catalogVersion: 4,
 };
 
 const WEB_INTEGRATIONS = Object.freeze([
@@ -49,6 +52,7 @@ const WEB_INTEGRATIONS = Object.freeze([
   { id: "framer-link", service: "Framer", group: "Diseño visual", description: "Prototipos y sitios publicados", icon: "panels-top-left", color: "blue", pack: "visual", domains: ["framer.com", "framer.website"], mode: "Híbrida" },
   { id: "visio-link", service: "Microsoft Visio", group: "Diseño visual", description: "Diagramas de Visio alojados en Microsoft 365", icon: "network", color: "blue", pack: "visual", domains: ["office.com", "microsoft365.com", "sharepoint.com", "onedrive.live.com", "1drv.ms"], mode: "Navegador" },
   { id: "yandex-boards-link", service: "Yandex Boards", group: "Diseño visual", description: "Pizarras en línea para proyectos y equipos", icon: "layout-dashboard", color: "amber", pack: "visual", domains: ["boards.yandex.ru", "boards.yandex.com"], mode: "Requiere cuenta" },
+  { id: "genially-link", service: "Genially", group: "Diseño visual", description: "Presentaciones, infografías y contenido interactivo", icon: "sparkles", color: "violet", pack: "visual", domains: ["genially.com", "view.genially.com"], mode: "Vista pública" },
 
   // Comunicación
   { id: "slack-link", service: "Slack", group: "Comunicación", description: "Canales, hilos y mensajes concretos", icon: "message-square", color: "violet", pack: "business", domains: ["slack.com"], mode: "Requiere cuenta" },
@@ -64,6 +68,11 @@ const WEB_INTEGRATIONS = Object.freeze([
   { id: "typeform-link", service: "Typeform", group: "Productividad y formularios", description: "Formularios y encuestas", icon: "clipboard-list", color: "blue", pack: "business", domains: ["typeform.com"], mode: "Vista pública" },
   { id: "google-forms-link", service: "Google Forms", group: "Productividad y formularios", description: "Formularios y respuestas de Google", icon: "clipboard-list", color: "violet", pack: "business", domains: ["docs.google.com", "forms.gle"], pathHint: "/forms/", mode: "Vista pública" },
   { id: "yandex-forms-link", service: "Yandex Forms", group: "Productividad y formularios", description: "Encuestas, solicitudes, pruebas y cuestionarios", icon: "clipboard-list", color: "amber", pack: "business", domains: ["forms.yandex.ru", "forms.yandex.com"], mode: "Híbrida" },
+  { id: "microsoft-forms-link", service: "Microsoft Forms", group: "Productividad y formularios", description: "Formularios, cuestionarios y respuestas de Microsoft 365", icon: "clipboard-check", color: "blue", pack: "business", domains: ["forms.office.com", "forms.microsoft.com"], mode: "Híbrida" },
+
+  // Notas y conocimiento
+  { id: "joplin-link", service: "Joplin", group: "Notas y conocimiento", description: "Notas Markdown, cuadernos y Joplin Cloud", icon: "notebook-pen", color: "blue", pack: "smart-notes", domains: ["joplincloud.com", "joplinapp.org"], mode: "Navegador" },
+  { id: "evernote-link", service: "Evernote", group: "Notas y conocimiento", description: "Notas y cuadernos; migración mediante ENEX o HTML", icon: "notebook-tabs", color: "emerald", pack: "smart-notes", domains: ["evernote.com"], mode: "Navegador" },
 
   // Desarrollo
   { id: "github-link", service: "GitHub", group: "Desarrollo", description: "Repositorios, incidencias y pull requests", icon: "github", color: "violet", pack: "code", domains: ["github.com"], mode: "Híbrida" },
@@ -71,12 +80,24 @@ const WEB_INTEGRATIONS = Object.freeze([
   { id: "codepen-link", service: "CodePen", group: "Desarrollo", description: "Demos y fragmentos web", icon: "code-2", color: "blue", pack: "code", domains: ["codepen.io"], mode: "Vista pública" },
   { id: "replit-link", service: "Replit", group: "Desarrollo", description: "Proyectos y aplicaciones en la nube", icon: "square-code", color: "orange", pack: "code", domains: ["replit.com"], mode: "Híbrida" },
 
-  // Multimedia y almacenamiento
-  { id: "youtube-link", service: "YouTube", group: "Multimedia y almacenamiento", description: "Videos, listas y transmisiones", icon: "youtube", color: "pink", pack: "multimedia", domains: ["youtube.com", "youtu.be"], mode: "Vista pública" },
-  { id: "vimeo-link", service: "Vimeo", group: "Multimedia y almacenamiento", description: "Videos y presentaciones", icon: "video", color: "blue", pack: "multimedia", domains: ["vimeo.com"], mode: "Vista pública" },
-  { id: "google-sheets-link", service: "Google Sheets", group: "Multimedia y almacenamiento", description: "Hojas de cálculo compartidas", icon: "sheet", color: "emerald", pack: "office", domains: ["docs.google.com"], pathHint: "/spreadsheets/d/", mode: "Híbrida" },
-  { id: "google-drive-link", service: "Google Drive", group: "Multimedia y almacenamiento", description: "Archivos y carpetas compartidos", icon: "hard-drive", color: "blue", pack: "office", domains: ["drive.google.com", "docs.google.com"], mode: "Híbrida" },
-  { id: "dropbox-link", service: "Dropbox", group: "Multimedia y almacenamiento", description: "Archivos y carpetas en la nube", icon: "box", color: "blue", pack: "office", domains: ["dropbox.com", "db.tt"], mode: "Híbrida" },
+  // Oficina web
+  { id: "google-sheets-link", service: "Google Sheets", group: "Oficina web", description: "Hojas de cálculo compartidas", icon: "sheet", color: "emerald", pack: "office", domains: ["docs.google.com"], pathHint: "/spreadsheets/d/", mode: "Híbrida" },
+
+  // Multimedia
+  { id: "youtube-link", service: "YouTube", group: "Multimedia", description: "Videos, listas y transmisiones", icon: "youtube", color: "pink", pack: "multimedia", domains: ["youtube.com", "youtu.be"], mode: "Vista pública" },
+  { id: "vimeo-link", service: "Vimeo", group: "Multimedia", description: "Videos y presentaciones", icon: "video", color: "blue", pack: "multimedia", domains: ["vimeo.com"], mode: "Vista pública" },
+
+  // Almacenamiento
+  { id: "google-drive-link", service: "Google Drive", group: "Almacenamiento", description: "Archivos y carpetas compartidos", icon: "hard-drive", color: "blue", pack: "office", domains: ["drive.google.com", "docs.google.com"], mode: "Híbrida" },
+  { id: "onedrive-link", service: "OneDrive", group: "Almacenamiento", description: "Archivos de Microsoft y vínculos compartidos", icon: "cloud", color: "blue", pack: "office", domains: ["onedrive.live.com", "1drv.ms", "sharepoint.com"], mode: "Híbrida" },
+  { id: "yandex-disk-link", service: "Yandex Disk", group: "Almacenamiento", description: "Archivos y carpetas de Yandex Disk", icon: "hard-drive", color: "amber", pack: "office", domains: ["disk.yandex.ru", "disk.yandex.com", "yadi.sk"], mode: "Híbrida" },
+  { id: "dropbox-link", service: "Dropbox", group: "Almacenamiento", description: "Archivos y carpetas en la nube", icon: "box", color: "blue", pack: "office", domains: ["dropbox.com", "db.tt"], mode: "Híbrida" },
+  { id: "box-link", service: "Box", group: "Almacenamiento", description: "Archivos empresariales y enlaces compartidos", icon: "archive", color: "blue", pack: "office", domains: ["box.com", "app.box.com"], mode: "Híbrida" },
+  { id: "proton-drive-link", service: "Proton Drive", group: "Almacenamiento", description: "Archivos cifrados y enlaces compartidos", icon: "shield-check", color: "violet", pack: "office", domains: ["drive.proton.me", "proton.me"], mode: "Navegador" },
+  { id: "terabox-link", service: "TeraBox", group: "Almacenamiento", description: "Archivos y enlaces compartidos en TeraBox", icon: "cloud", color: "blue", pack: "office", domains: ["terabox.com", "1024tera.com"], mode: "Navegador" },
+  { id: "mega-link", service: "MEGA", group: "Almacenamiento", description: "Archivos y carpetas compartidos con cifrado", icon: "cloud", color: "pink", pack: "office", domains: ["mega.nz"], mode: "Navegador" },
+  { id: "pcloud-link", service: "pCloud", group: "Almacenamiento", description: "Archivos, carpetas y enlaces públicos", icon: "cloud", color: "blue", pack: "office", domains: ["pcloud.com", "my.pcloud.com", "e.pcloud.link"], mode: "Híbrida" },
+  { id: "nextcloud-link", service: "Nextcloud", group: "Almacenamiento", description: "Nube privada o autohospedada", icon: "cloud-cog", color: "blue", pack: "office", domains: [], allowCustomDomain: true, mode: "Híbrida" },
 ].map((item) => ({ ...item, name: item.service, ext: "md", category: "Integraciones", action: "web-link" })));
 
 const OFFICE_TEMPLATES = Object.freeze({
@@ -103,7 +124,8 @@ const FILE_TYPES = [
   { id: "flashcard-note", name: "Flashcard", description: "Pregunta, respuesta, pista y repaso", ext: "md", icon: "layers-3", category: "Plantillas", pack: "academic", color: "emerald", content: ({ title }) => smartNote("flashcard", title, `> [!question] Pregunta\n> \n\n## Respuesta\n\n> [!success]- Mostrar respuesta\n> \n\n## Pista\n\n> [!hint]- Mostrar pista\n> \n\n## Explicación y contexto\n\n## Fuente\n\n- \n\n## Repaso\n\n| Fecha | Resultado | Próximo repaso |\n|---|---|---|\n| ${today()} | Nuevo |  |`) },
   { id: "reference-note", name: "Cita / Referencia", description: "Fuente, cita, contexto y comentario", ext: "md", icon: "quote", category: "Plantillas", pack: "academic", color: "violet", content: ({ title }) => smartNote("referencia", title, `> [!quote] Cita\n> “ ”\n\n## Fuente\n\n- **Autor:**\n- **Obra / publicación:**\n- **Año:**\n- **Página / ubicación:**\n- **URL / DOI / ISBN:**\n- **Consultado:** ${today()}\n\n## Contexto\n\n## Interpretación personal\n\n## Cómo podría usarla\n\n- \n\n## Referencia formateada\n\n> `) },
   { id: "text", name: "Texto", description: "Texto plano universal", ext: "txt", icon: "text", category: "Notas", color: "blue", viewer: true, content: () => "" },
-  { id: "open-pdf", name: "Abrir PDF", description: "Busca un PDF de tu bóveda y ábrelo en Obsidian", ext: "pdf", icon: "file-search", category: "Notas", color: "orange", action: "open-pdf" },
+  { id: "device-file", name: "Mis dispositivos", description: "Elige e importa un único archivo mediante el selector seguro del sistema", ext: "*", icon: "folder-open", category: "Office", pack: "essentials", color: "blue", action: "import-file" },
+  { id: "open-pdf", name: "Centro PDF", description: "Busca, abre y continúa trabajando con un PDF de tu bóveda", ext: "pdf", icon: "file-search", category: "Notas", color: "orange", action: "open-pdf" },
   { id: "import-pdf", name: "Importar PDF", description: "Elige un PDF del equipo y copia solo ese archivo a la bóveda", ext: "pdf", icon: "file-input", category: "Multimedia", pack: "multimedia", color: "orange", action: "import-pdf" },
   { id: "pdf-notes", name: "PDF + notas", description: "Relaciona un PDF con resumen, citas y progreso", ext: "md", icon: "notebook-tabs", category: "Multimedia", pack: "multimedia", color: "violet", action: "companion", mediaKind: "pdf", mediaExtensions: ["pdf"] },
   { id: "image-notes", name: "Imagen + notas", description: "Describe, acredita y anota una imagen", ext: "md", icon: "image-plus", category: "Multimedia", pack: "multimedia", color: "pink", action: "companion", mediaKind: "imagen", mediaExtensions: ["png", "jpg", "jpeg", "gif", "webp", "svg"] },
@@ -135,9 +157,9 @@ const FILE_TYPES = [
   { id: "calendar", name: "Evento iCalendar", description: "Evento portable para aplicaciones de calendario", ext: "ics", icon: "calendar-plus", category: "Datos", pack: "business", color: "pink", viewer: true, content: ({ title }) => `BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//Pointix File Hub//ES\nBEGIN:VEVENT\nUID:${Date.now()}@pointix\nDTSTAMP:${icalTimestamp()}\nSUMMARY:${title}\nDTSTART:${icalTimestamp()}\nDTEND:${icalTimestamp(60)}\nEND:VEVENT\nEND:VCALENDAR\n` },
   { id: "jupyter", name: "Notebook Jupyter", description: "Cuaderno IPYNB inicial con una celda Markdown", ext: "ipynb", icon: "notebook-tabs", category: "Código", pack: "academic", color: "orange", viewer: true, content: ({ title }) => `${JSON.stringify({ cells: [{ cell_type: "markdown", metadata: {}, source: [`# ${title}`] }], metadata: {}, nbformat: 4, nbformat_minor: 5 }, null, 2)}\n` },
   { id: "html", name: "Página HTML", description: "Documento web portátil", ext: "html", icon: "code-2", category: "Código", color: "orange", viewer: true, content: ({ title }) => `<!doctype html>\n<html lang="es">\n<head>\n  <meta charset="utf-8">\n  <meta name="viewport" content="width=device-width, initial-scale=1">\n  <title>${escapeHtml(title)}</title>\n</head>\n<body>\n  <h1>${escapeHtml(title)}</h1>\n</body>\n</html>\n` },
-  { id: "docx", name: "Documento Word", description: "Microsoft Word o editor compatible", ext: "docx", icon: "file-text", category: "Office", color: "blue", office: true },
-  { id: "xlsx", name: "Libro de Excel", description: "Microsoft Excel o editor compatible", ext: "xlsx", icon: "sheet", category: "Office", color: "emerald", office: true },
-  { id: "pptx", name: "Presentación", description: "PowerPoint o editor compatible", ext: "pptx", icon: "presentation", category: "Office", color: "orange", office: true },
+  { id: "docx", name: "Documento · Docs", description: "Compatible con Microsoft Word, WPS y LibreOffice", ext: "docx", icon: "file-text", category: "Office", color: "blue", office: true },
+  { id: "xlsx", name: "Hoja · Sheets", description: "Compatible con Microsoft Excel, WPS y LibreOffice", ext: "xlsx", icon: "sheet", category: "Office", color: "emerald", office: true },
+  { id: "pptx", name: "Presentación · Slides", description: "Compatible con PowerPoint, WPS y LibreOffice", ext: "pptx", icon: "presentation", category: "Office", color: "orange", office: true },
   { id: "univer", name: "Hoja Sheet Plus", description: "Libro editable dentro de Obsidian", ext: "univer", icon: "table-properties", category: "Office", color: "green", integration: ["sheet", "excel", "univer"] },
   { id: "excalidraw", name: "Dibujo Excalidraw", description: "Pizarra y diagramación con el complemento oficial", ext: "excalidraw.md", icon: "pen-tool", category: "Visual", color: "pink", pluginId: "obsidian-excalidraw-plugin", excalidraw: true },
 ];
@@ -176,6 +198,29 @@ function kindFor(type) {
   if (type.category === "Plantillas" || type.action === "companion") return "Notas inteligentes";
   if (type.pluginId || type.integration || type.excalidraw || type.action === "web-link") return "Integraciones";
   return "Archivos reales";
+}
+
+const CATALOG_CATEGORIES = Object.freeze([
+  ["Inicio", "home"], ["Notas", "notebook-pen"], ["Documentos", "files"],
+  ["Datos y código", "code-2"], ["Diseño", "palette"], ["Multimedia", "play"],
+  ["PDF", "file-text"], ["Almacenamiento", "cloud"], ["Integraciones", "blocks"],
+]);
+
+function catalogCategory(type) {
+  if (["open-pdf", "import-pdf", "pdf-notes"].includes(type.id)) return "PDF";
+  if (type.action === "web-link") {
+    if (type.group === "Almacenamiento") return "Almacenamiento";
+    if (type.group === "Multimedia") return "Multimedia";
+    if (type.group === "Notas y conocimiento") return "Notas";
+    if (type.group === "Oficina web") return "Documentos";
+    return "Integraciones";
+  }
+  if (type.category === "Plantillas" || type.category === "Notas") return "Notas";
+  if (type.category === "Office") return "Documentos";
+  if (["Datos", "Código"].includes(type.category)) return "Datos y código";
+  if (type.category === "Visual") return "Diseño";
+  if (type.category === "Multimedia" || type.action === "companion") return "Multimedia";
+  return "Documentos";
 }
 
 function escapeHtml(value) {
@@ -305,7 +350,35 @@ class PointixFileHubPlugin extends Plugin {
 
   enabledTypes() {
     const enabled = new Set(this.settings.enabledPacks || DEFAULT_SETTINGS.enabledPacks);
-    return FILE_TYPES.filter((type) => enabled.has(packIdFor(type)));
+    const hidden = new Set(this.settings.hiddenIds || []);
+    return FILE_TYPES.filter((type) => enabled.has(packIdFor(type)) && !hidden.has(type.id));
+  }
+
+  orderedTypes(types, section) {
+    const order = this.settings.categoryOrder?.[section] || [];
+    const positions = new Map(order.map((id, index) => [id, index]));
+    return [...types].sort((a, b) => (positions.get(a.id) ?? 10000) - (positions.get(b.id) ?? 10000));
+  }
+
+  async moveType(section, sourceId, targetId) {
+    if (!sourceId || !targetId || sourceId === targetId) return;
+    const ids = this.orderedTypes(this.enabledTypes().filter((type) => catalogCategory(type) === section), section).map((type) => type.id);
+    const from = ids.indexOf(sourceId); const to = ids.indexOf(targetId);
+    if (from < 0 || to < 0) return;
+    ids.splice(to, 0, ids.splice(from, 1)[0]);
+    this.settings.categoryOrder = { ...(this.settings.categoryOrder || {}), [section]: ids };
+    await this.saveSettings();
+  }
+
+  async moveTypeToStart(section, id) {
+    const ids = this.orderedTypes(this.enabledTypes().filter((type) => catalogCategory(type) === section), section).map((type) => type.id).filter((item) => item !== id);
+    this.settings.categoryOrder = { ...(this.settings.categoryOrder || {}), [section]: [id, ...ids] };
+    await this.saveSettings();
+  }
+
+  async hideType(id) {
+    this.settings.hiddenIds = Array.from(new Set([...(this.settings.hiddenIds || []), id]));
+    await this.saveSettings();
   }
 
   findIntegration(type) {
@@ -319,6 +392,7 @@ class PointixFileHubPlugin extends Plugin {
   }
 
   availability(type) {
+    if (type.action === "import-file") return { state: "ready", label: "Selector del sistema" };
     if (type.action === "import-pdf") return { state: "ready", label: "Importación de un archivo" };
     if (type.action === "companion") return { state: "ready", label: "Nota compañera" };
     if (type.action === "web-link") return { state: "ready", label: type.mode || "Integración enlazada" };
@@ -343,6 +417,10 @@ class PointixFileHubPlugin extends Plugin {
   }
 
   async beginCreate(type) {
+    if (type.action === "import-file") {
+      new ExternalFileImportModal(this.app, this).open();
+      return;
+    }
     if (type.action === "open-pdf") {
       new PdfPickerModal(this.app, this).open();
       return;
@@ -525,13 +603,77 @@ class PointixFileHubPlugin extends Plugin {
   }
 }
 
+class ReorderCardsModal extends Modal {
+  constructor(app, plugin, section) { super(app); this.plugin = plugin; this.section = section; this.ids = []; }
+  onOpen() {
+    this.modalEl.addClass("pfh-reorder-modal");
+    const { contentEl } = this;
+    contentEl.createEl("h2", { text: `Organizar ${this.section}` });
+    contentEl.createEl("p", { text: "Mantén presionado el tirador y mueve cada opción. El cambio solo organiza el catálogo; no mueve archivos." });
+    const types = this.plugin.enabledTypes().filter((type) => catalogCategory(type) === this.section);
+    this.ids = this.plugin.orderedTypes(types, this.section).map((type) => type.id);
+    const list = contentEl.createDiv("pfh-reorder-list");
+    const render = () => {
+      list.empty();
+      this.ids.forEach((id) => {
+        const type = types.find((item) => item.id === id); if (!type) return;
+        const row = list.createDiv({ cls: "pfh-reorder-row", attr: { "data-id": id } });
+        const grip = row.createSpan("pfh-reorder-grip"); setIcon(grip, "grip-vertical");
+        const icon = row.createSpan("pfh-picker-icon"); setIcon(icon, type.icon);
+        row.createEl("strong", { text: type.name });
+        let active = false;
+        grip.addEventListener("pointerdown", (event) => { active = true; grip.setPointerCapture?.(event.pointerId); row.addClass("is-moving"); navigator.vibrate?.(20); });
+        grip.addEventListener("pointermove", (event) => {
+          if (!active) return;
+          const target = document.elementFromPoint(event.clientX, event.clientY)?.closest?.(".pfh-reorder-row");
+          if (!target || target === row || !list.contains(target)) return;
+          const box = target.getBoundingClientRect();
+          list.insertBefore(row, event.clientY < box.top + box.height / 2 ? target : target.nextSibling);
+        });
+        const finish = () => { if (!active) return; active = false; row.removeClass("is-moving"); this.ids = [...list.querySelectorAll(".pfh-reorder-row")].map((item) => item.dataset.id); };
+        grip.addEventListener("pointerup", finish); grip.addEventListener("pointercancel", finish);
+      });
+    };
+    render();
+    const actions = contentEl.createDiv("pfh-modal-actions");
+    actions.createEl("button", { text: "Cancelar" }).addEventListener("click", () => this.close());
+    actions.createEl("button", { cls: "mod-cta", text: "Guardar orden" }).addEventListener("click", async () => {
+      this.plugin.settings.categoryOrder = { ...(this.plugin.settings.categoryOrder || {}), [this.section]: this.ids };
+      await this.plugin.saveSettings(); this.close();
+    });
+  }
+  onClose() { this.contentEl.empty(); }
+}
+
+class CardActionsModal extends Modal {
+  constructor(app, plugin, type, section) { super(app); this.plugin = plugin; this.type = type; this.section = section; }
+  onOpen() {
+    this.modalEl.addClass("pfh-action-modal");
+    const { contentEl } = this;
+    contentEl.createEl("h2", { text: this.type.name });
+    contentEl.createEl("p", { text: "Personaliza esta tarjeta. Ninguna acción modifica archivos de tu bóveda." });
+    const actions = contentEl.createDiv("pfh-action-list");
+    const add = (iconName, label, callback) => {
+      const button = actions.createEl("button", { text: label }); button.prepend(createIcon(iconName));
+      button.addEventListener("click", async () => { await callback(); this.close(); });
+    };
+    const favorite = (this.plugin.settings.favoriteIds || []).includes(this.type.id);
+    add(favorite ? "bookmark-minus" : "bookmark-plus", favorite ? "Quitar de favoritos" : "Añadir a favoritos", () => this.plugin.toggleFavorite(this.type.id));
+    add("list-start", "Mover al inicio", () => this.plugin.moveTypeToStart(this.section, this.type.id));
+    add("list-restart", "Organizar esta categoría", async () => new ReorderCardsModal(this.app, this.plugin, this.section).open());
+    add("eye-off", "Ocultar del catálogo", () => this.plugin.hideType(this.type.id));
+    add("play", this.type.action ? "Abrir esta opción" : "Crear con esta opción", () => this.plugin.beginCreate(this.type));
+  }
+  onClose() { this.contentEl.empty(); }
+}
+
 class FileHubView extends ItemView {
   constructor(leaf, plugin) {
     super(leaf);
     this.plugin = plugin;
     this.query = "";
-    this.category = "Todos";
-    this.kind = "Todos";
+    this.category = "Inicio";
+    this.draggedId = null;
   }
 
   getViewType() { return HUB_VIEW; }
@@ -544,28 +686,15 @@ class FileHubView extends ItemView {
     root.empty();
     root.addClass("pointix-file-hub");
 
+    root.toggleClass("is-list-view", this.plugin.settings.mobileView !== "grid");
     const hero = root.createDiv("pfh-hero");
     const heroText = hero.createDiv("pfh-hero-text");
     heroText.createEl("div", { cls: "pfh-eyebrow", text: "POINTIX WORKSPACE" });
-    heroText.createEl("h1", { text: "Crea lo que necesites. Todo queda en su lugar." });
-    heroText.createEl("p", { text: "Desde una nota rápida hasta documentos de Office, datos, código o un lienzo visual: crea, organiza y abre todo desde tu bóveda sin perder el contexto de Obsidian." });
+    heroText.createEl("h1", { text: "Crea, conecta y encuentra todo." });
+    heroText.createEl("p", { text: "Notas, documentos, herramientas y servicios reunidos en tu espacio de trabajo." });
     const quick = hero.createEl("button", { cls: "mod-cta pfh-quick", text: "Crear archivo" });
     quick.prepend(createIcon("plus"));
     quick.addEventListener("click", () => new CreateFileModal(this.app, this.plugin).open());
-
-    const overview = root.createDiv("pfh-overview");
-    [
-      ["Archivos reales", "file-plus-2", "Crea formatos estándar y edítalos aquí o con su aplicación."],
-      ["Notas inteligentes", "notebook-tabs", "Empieza con propiedades, etapas y una estructura profesional."],
-      ["Integraciones", "blocks", "Conecta capacidades nativas y complementos sin perder el contexto."],
-    ].forEach(([kind, iconName, description]) => {
-      const button = overview.createEl("button", { cls: this.kind === kind ? "pfh-overview-card is-active" : "pfh-overview-card" });
-      const icon = button.createSpan("pfh-overview-icon"); setIcon(icon, iconName);
-      const copy = button.createSpan("pfh-overview-copy"); copy.createEl("strong", { text: kind }); copy.createEl("small", { text: description });
-      const count = this.plugin.enabledTypes().filter((type) => kindFor(type) === kind).length;
-      button.createSpan({ cls: "pfh-overview-count", text: String(count) });
-      button.addEventListener("click", () => { this.kind = this.kind === kind ? "Todos" : kind; this.category = "Todos"; this.render(); });
-    });
 
     const tools = root.createDiv("pfh-tools");
     const searchWrap = tools.createDiv("pfh-search");
@@ -575,9 +704,10 @@ class FileHubView extends ItemView {
     search.addEventListener("input", () => { this.query = search.value.toLowerCase(); this.renderGrid(root); });
 
     const chips = tools.createDiv("pfh-chips");
-    ["Todos", "Notas", "Plantillas", "Office", "Datos", "Visual", "Código", "Multimedia", "Integraciones"].forEach((category) => {
-      const chip = chips.createEl("button", { text: category, cls: this.category === category ? "is-active" : "" });
-      chip.addEventListener("click", () => { this.category = category; this.kind = "Todos"; this.render(); });
+    CATALOG_CATEGORIES.forEach(([category, iconName]) => {
+      const chip = chips.createEl("button", { cls: this.category === category ? "is-active" : "" });
+      chip.append(createIcon(iconName)); chip.appendText(category);
+      chip.addEventListener("click", () => { this.category = category; this.render(); });
     });
 
     this.renderGrid(root);
@@ -588,49 +718,58 @@ class FileHubView extends ItemView {
     const content = root.createDiv("pfh-content");
     const enabledTypes = this.plugin.enabledTypes();
     const all = enabledTypes.filter((type) => {
-      const categoryMatches = this.category === "Todos" || type.category === this.category;
-      const kindMatches = this.kind === "Todos" || kindFor(type) === this.kind;
-      const searchMatches = !this.query || `${type.name} ${type.description} ${type.ext}`.toLowerCase().includes(this.query);
-      return categoryMatches && kindMatches && searchMatches;
+      const categoryMatches = this.category === "Inicio" || catalogCategory(type) === this.category;
+      const searchMatches = !this.query || `${type.name} ${type.description} ${type.ext} ${type.group || ""}`.toLowerCase().includes(this.query);
+      return categoryMatches && searchMatches;
     });
 
-    if (this.category === "Todos" && !this.query && this.plugin.settings.favoriteIds.length) {
-      this.renderSection(content, "Favoritos", "star", this.plugin.settings.favoriteIds.map((id) => enabledTypes.find((type) => type.id === id)).filter(Boolean));
-    }
-    const integrationView = !this.query && all.length && (this.category === "Integraciones" || this.kind === "Integraciones");
-    if (integrationView) {
-      const groups = ["Gestión de proyectos", "Diseño visual", "Comunicación", "Productividad y formularios", "Desarrollo", "Multimedia y almacenamiento"];
-      groups.forEach((group) => this.renderSection(content, group, group === "Diseño visual" ? "palette" : group === "Comunicación" ? "messages-square" : group === "Desarrollo" ? "code-2" : "layout-grid", all.filter((type) => type.group === group)));
-      this.renderSection(content, "Complementos y capacidades", "puzzle", all.filter((type) => !type.group));
+    if (!this.query && this.category === "Inicio") {
+      const recent = (this.plugin.settings.recentIds || []).map((id) => enabledTypes.find((type) => type.id === id)).filter(Boolean);
+      const favorites = (this.plugin.settings.favoriteIds || []).map((id) => enabledTypes.find((type) => type.id === id)).filter(Boolean);
+      this.renderSection(content, "Recientes", "history", recent, "Recientes");
+      this.renderSection(content, "Favoritos", "bookmark", favorites, "Favoritos");
+      const categoryGrid = content.createDiv("pfh-category-grid");
+      CATALOG_CATEGORIES.filter(([name]) => name !== "Inicio").forEach(([name, iconName]) => {
+        const button = categoryGrid.createEl("button", { cls: "pfh-category-card" });
+        button.append(createIcon(iconName));
+        const copy = button.createSpan(); copy.createEl("strong", { text: name });
+        copy.createEl("small", { text: `${enabledTypes.filter((type) => catalogCategory(type) === name).length} opciones` });
+        button.addEventListener("click", () => { this.category = name; this.render(); });
+      });
+    } else if (!this.query && ["Integraciones", "Almacenamiento"].includes(this.category)) {
+      const groups = [...new Set(all.map((type) => type.group || "Complementos y capacidades"))];
+      groups.forEach((group) => this.renderSection(content, group, "layout-grid", all.filter((type) => (type.group || "Complementos y capacidades") === group), this.category));
     } else {
-      this.renderSection(content, this.query ? "Resultados" : (this.kind !== "Todos" ? this.kind : (this.category === "Todos" ? "Todos los formatos" : this.category)), "layout-grid", all);
+      this.renderSection(content, this.query ? "Resultados" : this.category, "layout-grid", all, this.category);
     }
     if (!all.length) content.createDiv({ cls: "pfh-empty", text: "No encontramos ese formato." });
   }
 
-  renderSection(parent, title, icon, types) {
+  renderSection(parent, title, icon, types, sectionKey = title) {
     if (!types.length) return;
     const section = parent.createEl("section", { cls: "pfh-section" });
     const heading = section.createDiv("pfh-section-heading");
     heading.append(createIcon(icon));
     heading.createEl("h2", { text: title });
     const grid = section.createDiv("pfh-grid");
-    types.forEach((type) => grid.append(this.createCard(type)));
+    this.plugin.orderedTypes(types, sectionKey).forEach((type) => grid.append(this.createCard(type, sectionKey)));
+    grid.addEventListener("dragover", (event) => event.preventDefault());
   }
 
-  createCard(type) {
+  createCard(type, sectionKey) {
     const availability = this.plugin.availability(type);
+    const personalizationSection = ["Recientes", "Favoritos", "Resultados"].includes(sectionKey) ? catalogCategory(type) : sectionKey;
     const card = document.createElement("article");
     card.className = `pfh-card pfh-${type.color}`;
     card.tabIndex = 0;
     card.setAttribute("role", "button");
     card.setAttribute("aria-label", type.action ? type.name : `Crear ${type.name}`);
+    card.draggable = true;
     const top = card.createDiv("pfh-card-top");
     const icon = top.createDiv("pfh-card-icon");
     setIcon(icon, type.icon);
-    const favorite = top.createEl("button", { cls: "pfh-favorite", attr: { "aria-label": "Cambiar favorito" } });
-    setIcon(favorite, this.plugin.settings.favoriteIds.includes(type.id) ? "star" : "star-off");
-    favorite.addEventListener("click", async (event) => { event.stopPropagation(); await this.plugin.toggleFavorite(type.id); });
+    const handle = top.createSpan({ cls: "pfh-drag-handle", attr: { "aria-hidden": "true" } });
+    setIcon(handle, "grip-vertical");
     card.createEl("h3", { text: type.name });
     card.createSpan({ cls: "pfh-kind", text: kindFor(type) });
     card.createEl("p", { text: type.description });
@@ -638,8 +777,21 @@ class FileHubView extends ItemView {
     footer.createSpan({ cls: `pfh-status is-${availability.state}`, text: availability.label });
     footer.createSpan({ cls: "pfh-extension", text: type.action === "open-pdf" ? "Buscar y abrir" : type.action === "import-pdf" ? "Elegir del equipo" : type.action === "companion" ? "Enlazar archivo" : type.action === "web-link" ? type.mode : `.${type.ext}` });
     const activate = () => this.plugin.beginCreate(type);
-    card.addEventListener("click", activate);
+    let timer = null; let held = false;
+    card.addEventListener("pointerdown", (event) => {
+      if (event.pointerType === "mouse") return;
+      held = false;
+      timer = window.setTimeout(() => { held = true; navigator.vibrate?.(25); new CardActionsModal(this.app, this.plugin, type, personalizationSection).open(); }, 560);
+    });
+    ["pointerup", "pointercancel", "pointermove"].forEach((name) => card.addEventListener(name, () => { if (timer) window.clearTimeout(timer); timer = null; }));
+    card.addEventListener("contextmenu", (event) => { event.preventDefault(); new CardActionsModal(this.app, this.plugin, type, personalizationSection).open(); });
+    card.addEventListener("click", (event) => { if (held) { event.preventDefault(); held = false; return; } activate(); });
     card.addEventListener("keydown", (event) => { if (event.key === "Enter" || event.key === " ") activate(); });
+    card.addEventListener("dragstart", (event) => { this.draggedId = type.id; event.dataTransfer.effectAllowed = "move"; card.addClass("is-dragging"); });
+    card.addEventListener("dragend", () => { this.draggedId = null; card.removeClass("is-dragging"); });
+    card.addEventListener("dragover", (event) => { event.preventDefault(); card.addClass("is-drop-target"); });
+    card.addEventListener("dragleave", () => card.removeClass("is-drop-target"));
+    card.addEventListener("drop", async (event) => { event.preventDefault(); card.removeClass("is-drop-target"); await this.plugin.moveType(personalizationSection, this.draggedId, type.id); });
     return card;
   }
 }
@@ -862,6 +1014,47 @@ class ExternalPdfImportModal extends Modal {
   onClose() { this.selectedFile = null; this.contentEl.empty(); }
 }
 
+class ExternalFileImportModal extends Modal {
+  constructor(app, plugin) { super(app); this.plugin = plugin; this.selectedFile = null; }
+  onOpen() {
+    this.modalEl.addClass("pfh-modal");
+    const { contentEl } = this;
+    contentEl.createEl("h2", { text: "Importar desde mis dispositivos" });
+    contentEl.createEl("p", { text: "El selector oficial del sistema entregará un único archivo. Pointix no examina la carpeta, no recorre el dispositivo y no importa directorios." });
+    const chooser = contentEl.createEl("input", { cls: "pfh-file-input", attr: { type: "file", "aria-label": "Elegir un archivo del dispositivo" } });
+    const selected = contentEl.createDiv({ cls: "pfh-selected-file", text: "Ningún archivo seleccionado." });
+    const actions = contentEl.createDiv("pfh-modal-actions");
+    actions.createEl("button", { text: "Cancelar" }).addEventListener("click", () => this.close());
+    const importButton = actions.createEl("button", { cls: "mod-cta", text: "Importar una copia" }); importButton.disabled = true;
+    chooser.addEventListener("change", () => {
+      this.selectedFile = chooser.files?.[0] || null;
+      importButton.disabled = !this.selectedFile;
+      selected.setText(this.selectedFile ? `${this.selectedFile.name} · ${formatBytes(this.selectedFile.size)}` : "Ningún archivo seleccionado.");
+    });
+    importButton.addEventListener("click", async () => {
+      const source = this.selectedFile; if (!source || importButton.disabled) return;
+      if (source.size > 500 * 1024 * 1024) { new Notice("El archivo supera el límite seguro de 500 MB."); return; }
+      const lastDot = source.name.lastIndexOf(".");
+      const rawBase = lastDot > 0 ? source.name.slice(0, lastDot) : source.name;
+      const rawExt = lastDot > 0 ? source.name.slice(lastDot + 1) : "bin";
+      const extension = rawExt.toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 12) || "bin";
+      importButton.disabled = true;
+      try {
+        const folder = safeFolder(this.plugin.settings.defaultFolder || "");
+        if (folder && !this.app.vault.getAbstractFileByPath(folder)) await this.plugin.ensureFolder(folder);
+        const path = await this.plugin.uniquePath(folder, safeName(rawBase) || "Archivo", extension);
+        const file = await this.app.vault.createBinary(path, await source.arrayBuffer());
+        this.close(); new Notice(`Archivo importado: ${file.path}`); await this.plugin.openShell(file.path);
+      } catch (error) {
+        console.error("Pointix File Hub: single file import failed", error);
+        new Notice("No se pudo importar el archivo. No se copiaron carpetas ni otros elementos.");
+        importButton.disabled = false;
+      }
+    });
+  }
+  onClose() { this.selectedFile = null; this.contentEl.empty(); }
+}
+
 class WebLinkModal extends Modal {
   constructor(app, plugin, type) { super(app); this.plugin = plugin; this.type = type; }
   onOpen() {
@@ -976,6 +1169,8 @@ class PointixFileHubSettingTab extends PluginSettingTab {
     containerEl.createEl("p", { text: "Configura dónde crear archivos. Las plantillas de Office son internas y no se copian carpetas ni archivos de tu bóveda." });
     new Setting(containerEl).setName("Carpeta predeterminada").setDesc("Ruta dentro de la bóveda para los archivos nuevos.").addText((text) => text.setPlaceholder("Documentos").setValue(this.plugin.settings.defaultFolder).onChange(async (value) => { this.plugin.settings.defaultFolder = value; await this.plugin.saveSettings(); }));
     new Setting(containerEl).setName("Abrir después de crear").setDesc("Abre el archivo nativo o su ficha de Pointix.").addToggle((toggle) => toggle.setValue(this.plugin.settings.openAfterCreate).onChange(async (value) => { this.plugin.settings.openAfterCreate = value; await this.plugin.saveSettings(); }));
+    new Setting(containerEl).setName("Vista móvil").setDesc("La lista prioriza legibilidad; la cuadrícula muestra más opciones a la vez.").addDropdown((dropdown) => dropdown.addOption("list", "Lista compacta").addOption("grid", "Cuadrícula").setValue(this.plugin.settings.mobileView || "list").onChange(async (value) => { this.plugin.settings.mobileView = value; await this.plugin.saveSettings(); }));
+    new Setting(containerEl).setName("Restablecer organización").setDesc("Recupera tarjetas ocultas y el orden original. No modifica ningún archivo.").addButton((button) => button.setButtonText("Restablecer catálogo").onClick(async () => { this.plugin.settings.hiddenIds = []; this.plugin.settings.categoryOrder = {}; await this.plugin.saveSettings(); new Notice("Catálogo restablecido."); }));
     containerEl.createEl("h3", { text: "Paquetes de creación" });
     containerEl.createEl("p", { text: "Activa únicamente las familias de archivos que quieras ver en el Hub. Puedes cambiarlas cuando lo necesites." });
     PACKS.forEach((pack) => {
