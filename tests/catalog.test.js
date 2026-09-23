@@ -186,9 +186,9 @@ test("web integrations create linked Markdown instead of fake service files", ()
   const PluginClass = loadPlugin();
   const { FILE_TYPES, WEB_INTEGRATIONS } = PluginClass.__test;
   const webLinks = FILE_TYPES.filter((type) => type.action === "web-link");
-  assert.equal(webLinks.length, 46);
+  assert.equal(webLinks.length, 50);
   assert.equal(webLinks.length, WEB_INTEGRATIONS.length);
-  for (const service of ["Microsoft Visio", "Microsoft Forms", "Genially", "Joplin", "Evernote", "Yandex Boards", "Yandex Calendar", "Yandex Forms", "Yandex Disk", "OneDrive", "Proton Drive", "TeraBox", "Google Sheets", "Canva", "Figma"]) {
+  for (const service of ["Microsoft Visio", "Microsoft Forms", "Genially", "Joplin", "Evernote", "Standard Notes", "Notesnook", "Simplenote", "UpNote", "Yandex Boards", "Yandex Calendar", "Yandex Forms", "Yandex Disk", "OneDrive", "Proton Drive", "TeraBox", "Google Sheets", "Canva", "Figma"]) {
     assert.ok(webLinks.some((type) => type.service === service), `missing ${service}`);
   }
   assert.ok(webLinks.every((type) => type.ext === "md"));
@@ -231,8 +231,38 @@ test("integration notes provide a safe external-browser recovery route", () => {
   const source = fs.readFileSync(path.join(root, "main.js"), "utf8");
   assert.match(source, /registerObsidianProtocolHandler\("pointix-open-web"/);
   assert.match(source, /Abrir en navegador externo/);
+  assert.match(source, /Abrir con \$\{service\} o elegir aplicación/);
+  assert.match(source, /registerObsidianProtocolHandler\("pointix-open-app"/);
   assert.match(source, /error de acceso, 401 o inicio de sesión/);
   assert.doesNotMatch(source, /password|contraseña.*addText/i);
+});
+
+test("all import flows select one file and a safe vault destination", () => {
+  const source = fs.readFileSync(path.join(root, "main.js"), "utf8");
+  assert.match(source, /function addVaultFolderField/);
+  assert.match(source, /async importBrowserFile/);
+  assert.match(source, /chooser\.files\?\.\[0\]/);
+  assert.match(source, /createBinary\(path, await source\.arrayBuffer\(\)\)/);
+  assert.doesNotMatch(source, /webkitdirectory|showDirectoryPicker|readdir|readDirectory|adapter\.list/);
+});
+
+test("PDF workspace exposes native, external and companion-note routes", () => {
+  const PluginClass = loadPlugin();
+  const { FILE_TYPES } = PluginClass.__test;
+  assert.ok(FILE_TYPES.some((type) => type.id === "pdf-tools" && type.action === "pdf-tools"));
+  const source = fs.readFileSync(path.join(root, "main.js"), "utf8");
+  assert.match(source, /class PdfToolsModal/);
+  assert.match(source, /Visor de Obsidian/);
+  assert.match(source, /Aplicación instalada/);
+  assert.match(source, /Crear PDF \+ notas/);
+});
+
+test("favorites and ordering have touch-safe visible controls", () => {
+  const source = fs.readFileSync(path.join(root, "main.js"), "utf8");
+  assert.match(source, /Tus favoritos aparecerán aquí/);
+  assert.match(source, /Subir \$\{type\.name\}/);
+  assert.match(source, /Bajar \$\{type\.name\}/);
+  assert.match(source, /Math\.hypot/);
 });
 
 test("text formats use the internal Pointix editor", () => {
