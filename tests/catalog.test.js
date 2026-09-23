@@ -186,15 +186,33 @@ test("web integrations create linked Markdown instead of fake service files", ()
   const PluginClass = loadPlugin();
   const { FILE_TYPES, WEB_INTEGRATIONS } = PluginClass.__test;
   const webLinks = FILE_TYPES.filter((type) => type.action === "web-link");
-  assert.equal(webLinks.length, 34);
+  assert.equal(webLinks.length, 46);
   assert.equal(webLinks.length, WEB_INTEGRATIONS.length);
-  for (const service of ["Microsoft Visio", "Yandex Boards", "Yandex Calendar", "Yandex Forms", "Google Sheets", "Canva", "Figma"]) {
+  for (const service of ["Microsoft Visio", "Microsoft Forms", "Genially", "Joplin", "Evernote", "Yandex Boards", "Yandex Calendar", "Yandex Forms", "Yandex Disk", "OneDrive", "Proton Drive", "TeraBox", "Google Sheets", "Canva", "Figma"]) {
     assert.ok(webLinks.some((type) => type.service === service), `missing ${service}`);
   }
   assert.ok(webLinks.every((type) => type.ext === "md"));
-  assert.ok(webLinks.every((type) => type.group && type.mode && type.domains?.length));
+  assert.ok(webLinks.every((type) => type.group && type.mode && (type.domains?.length || type.allowCustomDomain)));
   assert.equal(new Set(webLinks.map((type) => type.id)).size, webLinks.length);
   assert.equal(new Set(webLinks.map((type) => type.service)).size, webLinks.length);
+});
+
+test("device import accepts exactly one file and never scans folders", () => {
+  const PluginClass = loadPlugin();
+  const { FILE_TYPES } = PluginClass.__test;
+  const device = FILE_TYPES.find((type) => type.id === "device-file");
+  assert.equal(device.action, "import-file");
+  const source = fs.readFileSync(path.join(root, "main.js"), "utf8");
+  assert.match(source, /chooser\.files\?\.\[0\]/);
+  assert.doesNotMatch(source, /webkitdirectory|readEntries|readdir|readDirectory|adapter\.list/);
+});
+
+test("catalog personalization never renames, moves, copies or deletes vault files", () => {
+  const source = fs.readFileSync(path.join(root, "main.js"), "utf8");
+  assert.match(source, /categoryOrder/);
+  assert.match(source, /hiddenIds/);
+  assert.doesNotMatch(source, /vault\.(rename|delete|trash|copy)/);
+  assert.doesNotMatch(source, /adapter\.(rename|remove|rmdir|copy|list)/);
 });
 
 test("integration validation rejects login pages and wrong service domains", () => {
