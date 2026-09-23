@@ -12,6 +12,10 @@ Abre un [reporte de error](https://github.com/ExplorerAS/Pointix-File-Hub/issues
 
 También puedes escribir a [servicios.globix@gmail.com](mailto:servicios.globix@gmail.com).
 
+**Dónde encontrar el contacto:** el correo aparece en esta guía, en la sección “Ideas, sugerencias y soporte” del README y en la documentación pública del proyecto.
+
 Si deseas apoyar el desarrollo, visita [Ko-fi](https://ko-fi.com/exprorerit).
+
+**Dónde encontrar Ko-fi:** el enlace aparece en esta guía, en “Invítanos un café” del README y dentro de `Preferencias → Pointix File Hub → Apoyar Pointix`.
 
 Por seguridad, nunca envíes contraseñas, claves, bóvedas completas ni notas privadas.
