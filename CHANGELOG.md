@@ -1,5 +1,19 @@
 # Historial de cambios
 
+## 0.7.0
+
+- Flujos híbridos para abrir recursos dentro de Obsidian, con una aplicación compatible o en el navegador.
+- Standard Notes, Notesnook, Simplenote y UpNote añadidos a Notas y conocimiento, con orientación de importación manual.
+- Fichas de Joplin y Evernote ampliadas con migración manual y apertura mediante aplicación.
+- Mis dispositivos permite elegir carpeta de destino y abrir/compartir temporalmente sin importar.
+- Imagen, audio, video, EPUB y PDF + notas aceptan archivos existentes o importación segura de un solo archivo.
+- Centro PDF con visor de Obsidian, aplicación externa, ubicación, carpeta elegida y espacio para edición/anotación asistida.
+- Fichas de nubes e integraciones guardables en la carpeta del proyecto.
+- Favoritos visibles aun cuando están vacíos.
+- Organización compatible con arrastre y botones Subir/Bajar para Android y escritorio.
+- Selector Crear archivo reorganizado por categorías con búsqueda.
+- Catálogo ampliado a 50 integraciones y 23 pruebas automáticas.
+
 ## 0.6.0
 
 - Nuevo inicio móvil compacto y navegación por categorías.

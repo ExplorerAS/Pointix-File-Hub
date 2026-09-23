@@ -6,19 +6,19 @@ Pointix File Hub es un centro visual adaptable para crear notas y documentos, tr
 
 > **Estado:** beta pública para pruebas. Antes de utilizar una versión beta en una bóveda importante, conserva una copia de seguridad actualizada.
 
-## Novedades de la beta 0.6.0
+## Novedades de la beta 0.7.0
 
 - Inicio compacto con **Recientes**, **Favoritos** y categorías dedicadas.
 - Navegación separada: Notas, Documentos, Datos y código, Diseño, Multimedia, PDF, Almacenamiento e Integraciones.
 - Sin estrellas permanentes: mantén presionada una tarjeta en Android o utiliza clic derecho en escritorio.
 - Favoritos, mover al inicio, ocultar y organizar tarjetas por categoría.
-- Reordenamiento mediante arrastre táctil o ratón, sin mover archivos de la bóveda.
+- Reordenamiento mediante arrastre o botones **Subir/Bajar**, sin mover archivos de la bóveda.
 - Vista móvil de lista compacta o cuadrícula configurable.
 - Margen inferior seguro para evitar que los controles móviles de Obsidian cubran el catálogo.
-- **Mis dispositivos:** importa exactamente un archivo mediante el selector oficial del sistema.
-- **Centro PDF:** busca, abre, importa y relaciona PDF con notas de lectura.
+- **Mis dispositivos:** permite abrir o compartir temporalmente un archivo sin importarlo, o importar exactamente uno en la carpeta elegida.
+- **Centro PDF:** busca, abre con Obsidian o una app instalada, importa en una carpeta elegida y relaciona PDF con notas de lectura.
 - Multimedia y almacenamiento ahora son categorías independientes.
-- 46 integraciones web, incluyendo Genially, Microsoft Forms, Joplin, Evernote, OneDrive, Yandex Disk, Box, Proton Drive, TeraBox, MEGA, pCloud y Nextcloud.
+- 50 integraciones híbridas, incluyendo Standard Notes, Notesnook, Simplenote, UpNote, Joplin, Evernote y los principales proveedores de almacenamiento.
 
 ## Cómo abrir Pointix
 
@@ -35,7 +35,7 @@ Pointix File Hub es un centro visual adaptable para crear notas y documentos, tr
 - **Favoritos:** accesos elegidos por el usuario sin llenar las tarjetas de estrellas.
 - **Búsqueda instantánea:** encuentra formatos, funciones y servicios por nombre o descripción.
 - **Pulsación prolongada / clic derecho:** abre las acciones de personalización.
-- **Organizar categoría:** permite cambiar el orden visual mediante un tirador.
+- **Organizar categoría:** permite arrastrar o usar botones Subir/Bajar, más confiables en Android.
 - **Ocultar:** retira una opción del catálogo sin desinstalar nada ni modificar archivos.
 - **Restablecer catálogo:** recupera el orden original y todas las tarjetas desde Preferencias.
 - **Paquetes:** permite activar únicamente las familias necesarias.
@@ -64,7 +64,7 @@ Pointix utiliza `.md` normal; no inventa extensiones especiales que puedan rompe
 - **Hoja · Sheets:** crea un XLSX válido para Microsoft Excel, WPS Office o LibreOffice.
 - **Presentación · Slides:** crea un PPTX válido para PowerPoint, WPS Office o LibreOffice.
 - RTF, texto, HTML, CSV y Sheet Plus.
-- Vista **File Shell** con nombre, ubicación, formato, tamaño, apertura externa y acceso a la carpeta en escritorio.
+- Vista **File Shell** con nombre, ubicación, formato, tamaño y apertura con una aplicación compatible. En Android usa el menú de compartir/elegir aplicación cuando el sistema lo permite; en escritorio abre la aplicación predeterminada y puede mostrar la carpeta.
 
 Los DOCX, XLSX y PPTX se generan desde plantillas binarias internas controladas. Pointix realiza una única escritura y no copia carpetas de la bóveda.
 
@@ -89,20 +89,23 @@ Editor interno Pointix para JSON, YAML, XML, TOML, SQL, Python, JavaScript, Type
 - Buscar por nombre o carpeta dentro de la bóveda.
 - Abrir directamente en el visor de Obsidian.
 - Importar un único PDF desde el selector del sistema.
+- Elegir la carpeta de destino dentro de la bóveda.
+- Abrir con el visor de Obsidian, compartir/elegir una app en Android o abrir la aplicación predeterminada en escritorio.
 - Crear una nota compañera con estado de lectura, progreso, resumen, citas, anotaciones y conexiones.
 - Mantener el PDF original sin modificar cuando se trabaja mediante una nota compañera.
 
-La beta 0.6.0 no promete editar físicamente el contenido del PDF. Resaltado incrustado, formularios, firma y guardado directo requieren una capa especializada y se estudiarán con copias de recuperación antes de incorporarse.
+La beta 0.7.0 coordina estas rutas, pero no modifica físicamente el PDF por sí sola. Para resaltado incrustado, formularios, firma o edición utiliza la aplicación externa elegida por el sistema o un complemento especializado, manteniendo una copia de seguridad.
 
 ### Multimedia
 
-Pointix crea notas compañeras para imagen, audio, video y EPUB:
+Pointix crea notas compañeras para imagen, audio, video y EPUB. En cada caso permite elegir un archivo existente de cualquier carpeta de la bóveda o importar exactamente uno desde el dispositivo:
 
 - Enlace interno al archivo original.
 - Vista incrustada cuando Obsidian admite el formato.
 - Resumen, fuente, estado y anotaciones.
 - Marcas de tiempo para audio y video.
 - Archivo original sin alteraciones.
+- Carpeta del proyecto elegida o escrita por el usuario para guardar el archivo importado y su nota.
 
 ### Mis dispositivos
 
@@ -114,28 +117,31 @@ Utiliza el selector oficial de Android, Windows, macOS o iOS para elegir **un ú
 - No importa más de un elemento por operación.
 - Rechaza archivos superiores al límite seguro de 500 MB.
 - Crea una copia nueva dentro de la carpeta elegida de la bóveda.
+- Puede abrir o compartir el archivo seleccionado sin importarlo durante esa sesión. Por seguridad del sistema, un archivo externo no importado no conserva una ruta permanente dentro de la bóveda.
 
 ### Almacenamiento
 
 Fichas enlazadas para Google Drive, OneDrive, Yandex Disk, Dropbox, Box, Proton Drive, TeraBox, MEGA, pCloud y Nextcloud.
 
-Pointix no sincroniza estas nubes ni almacena sus credenciales. El contenido continúa bajo el control del proveedor y de sus permisos.
+Todas funcionan como fichas híbridas: enlace para ver o editar, intento de apertura mediante la app correspondiente o selector del sistema y enlace de respaldo al navegador. Pointix no sincroniza estas nubes ni almacena sus credenciales. El contenido continúa bajo el control del proveedor y de sus permisos.
 
 ### Integraciones web
 
-El catálogo incluye 46 servicios distribuidos entre:
+El catálogo incluye 50 servicios distribuidos entre:
 
 - Gestión de proyectos: Trello, Asana, ClickUp, Notion y Jira.
 - Diseño visual: Figma, Canva, Genially, Miro, Mural, Lucidchart, Whimsical, Framer, Visio y Yandex Boards.
 - Comunicación: Slack, Discord, Microsoft Teams y Loom.
 - Productividad y formularios: Calendly, Google Calendar, Yandex Calendar, Airtable, Typeform, Google Forms, Microsoft Forms y Yandex Forms.
-- Notas y conocimiento: Joplin y Evernote.
+- Notas y conocimiento: Joplin, Evernote, Standard Notes, Notesnook, Simplenote y UpNote.
 - Desarrollo: GitHub, GitLab, CodePen y Replit.
 - Multimedia: YouTube y Vimeo.
 - Oficina web: Google Sheets.
 - Almacenamiento: diez proveedores comunes y Nextcloud autohospedado.
 
-Cada integración genera una ficha Markdown con enlace, categoría, acceso declarado, modo de compatibilidad, contexto, estado, responsables, revisión y anotaciones. Ofrece apertura dentro de Obsidian y una salida segura al navegador externo.
+Cada integración genera una ficha Markdown en la carpeta del proyecto elegida. Incluye enlace, enlace opcional de aplicación, categoría, acceso declarado, contexto, estado, responsables, revisión y anotaciones. Ofrece apertura dentro de Obsidian, intento de apertura con la app correspondiente y salida segura al navegador externo.
+
+Para Joplin, Evernote, Standard Notes, Notesnook, Simplenote y UpNote, Pointix también explica los formatos de exportación compatibles. La migración es manual: el complemento nunca entra a la cuenta ni descarga una biblioteca completa sin selección del usuario.
 
 Los servicios pueden bloquear el visor integrado, cookies o autenticación. Pointix no promete que todos funcionen igual: conserva el enlace y muestra una ruta de recuperación cuando aparece un error 401 o de inicio de sesión.
 
@@ -149,7 +155,7 @@ Los servicios pueden bloquear el visor integrado, cookies o autenticación. Poin
 - Impide ejecuciones duplicadas simultáneas para el mismo archivo.
 - No contiene operaciones para copiar, recorrer, mover, renombrar o borrar carpetas de la bóveda.
 - Las integraciones rechazan páginas de acceso conocidas y validan el dominio del servicio.
-- 20 pruebas automáticas verifican catálogo, plantillas, creación única y ausencia de operaciones recursivas o destructivas.
+- 23 pruebas automáticas verifican catálogo, plantillas, creación única, destinos seguros, rutas híbridas y ausencia de operaciones recursivas o destructivas.
 
 ## Instalación de la beta
 

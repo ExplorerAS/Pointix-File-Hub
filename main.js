@@ -31,7 +31,7 @@ const DEFAULT_SETTINGS = {
   mobileView: "list",
   openAfterCreate: true,
   enabledPacks: PACKS.map((pack) => pack.id),
-  catalogVersion: 4,
+  catalogVersion: 5,
 };
 
 const WEB_INTEGRATIONS = Object.freeze([
@@ -71,8 +71,12 @@ const WEB_INTEGRATIONS = Object.freeze([
   { id: "microsoft-forms-link", service: "Microsoft Forms", group: "Productividad y formularios", description: "Formularios, cuestionarios y respuestas de Microsoft 365", icon: "clipboard-check", color: "blue", pack: "business", domains: ["forms.office.com", "forms.microsoft.com"], mode: "Híbrida" },
 
   // Notas y conocimiento
-  { id: "joplin-link", service: "Joplin", group: "Notas y conocimiento", description: "Notas Markdown, cuadernos y Joplin Cloud", icon: "notebook-pen", color: "blue", pack: "smart-notes", domains: ["joplincloud.com", "joplinapp.org"], mode: "Navegador" },
-  { id: "evernote-link", service: "Evernote", group: "Notas y conocimiento", description: "Notas y cuadernos; migración mediante ENEX o HTML", icon: "notebook-tabs", color: "emerald", pack: "smart-notes", domains: ["evernote.com"], mode: "Navegador" },
+  { id: "joplin-link", service: "Joplin", group: "Notas y conocimiento", description: "Notas Markdown, cuadernos y Joplin Cloud", icon: "notebook-pen", color: "blue", pack: "smart-notes", domains: ["joplincloud.com", "joplinapp.org"], mode: "Híbrida", importHelp: "Exporta desde Joplin como Markdown + Front Matter o JEX y selecciona manualmente el archivo exportado." },
+  { id: "evernote-link", service: "Evernote", group: "Notas y conocimiento", description: "Notas y cuadernos; migración mediante ENEX o HTML", icon: "notebook-tabs", color: "emerald", pack: "smart-notes", domains: ["evernote.com"], mode: "Híbrida", importHelp: "Exporta manualmente uno o varios cuadernos como ENEX o HTML desde Evernote de escritorio." },
+  { id: "standard-notes-link", service: "Standard Notes", group: "Notas y conocimiento", description: "Notas cifradas, editores y respaldos portables", icon: "shield-check", color: "violet", pack: "smart-notes", domains: ["standardnotes.com", "app.standardnotes.com"], mode: "Híbrida", importHelp: "Descarga un respaldo descifrado; el ZIP incluye notas individuales en texto plano que puedes importar manualmente a la bóveda." },
+  { id: "notesnook-link", service: "Notesnook", group: "Notas y conocimiento", description: "Notas privadas, cuadernos y respaldos cifrados", icon: "lock-keyhole", color: "blue", pack: "smart-notes", domains: ["notesnook.com", "app.notesnook.com"], mode: "Híbrida", importHelp: "Exporta desde Notesnook como Markdown, HTML o texto y selecciona manualmente los archivos que quieras conservar en Obsidian." },
+  { id: "simplenote-link", service: "Simplenote", group: "Notas y conocimiento", description: "Notas ligeras sincronizadas y publicables", icon: "notebook", color: "blue", pack: "smart-notes", domains: ["simplenote.com", "app.simplenote.com"], mode: "Híbrida", importHelp: "Exporta tus notas como ZIP; selecciona manualmente los TXT o Markdown que quieras incorporar." },
+  { id: "upnote-link", service: "UpNote", group: "Notas y conocimiento", description: "Notas, espacios y cuadernos multiplataforma", icon: "notebook-tabs", color: "amber", pack: "smart-notes", domains: ["getupnote.com", "app.getupnote.com"], mode: "Híbrida", importHelp: "La exportación completa se realiza desde UpNote de escritorio; usa Markdown para notas simples o HTML para conservar más formato y adjuntos." },
 
   // Desarrollo
   { id: "github-link", service: "GitHub", group: "Desarrollo", description: "Repositorios, incidencias y pull requests", icon: "github", color: "violet", pack: "code", domains: ["github.com"], mode: "Híbrida" },
@@ -128,6 +132,7 @@ const FILE_TYPES = [
   { id: "open-pdf", name: "Centro PDF", description: "Busca, abre y continúa trabajando con un PDF de tu bóveda", ext: "pdf", icon: "file-search", category: "Notas", color: "orange", action: "open-pdf" },
   { id: "import-pdf", name: "Importar PDF", description: "Elige un PDF del equipo y copia solo ese archivo a la bóveda", ext: "pdf", icon: "file-input", category: "Multimedia", pack: "multimedia", color: "orange", action: "import-pdf" },
   { id: "pdf-notes", name: "PDF + notas", description: "Relaciona un PDF con resumen, citas y progreso", ext: "md", icon: "notebook-tabs", category: "Multimedia", pack: "multimedia", color: "violet", action: "companion", mediaKind: "pdf", mediaExtensions: ["pdf"] },
+  { id: "pdf-tools", name: "PDF: editar y anotar", description: "Abre el PDF en Obsidian o en una app compatible para resaltar, firmar o modificar", ext: "pdf", icon: "file-pen-line", category: "Multimedia", pack: "multimedia", color: "orange", action: "pdf-tools" },
   { id: "image-notes", name: "Imagen + notas", description: "Describe, acredita y anota una imagen", ext: "md", icon: "image-plus", category: "Multimedia", pack: "multimedia", color: "pink", action: "companion", mediaKind: "imagen", mediaExtensions: ["png", "jpg", "jpeg", "gif", "webp", "svg"] },
   { id: "audio-notes", name: "Audio + notas", description: "Registro, marcas de tiempo y transcripción manual", ext: "md", icon: "audio-lines", category: "Multimedia", pack: "multimedia", color: "emerald", action: "companion", mediaKind: "audio", mediaExtensions: ["mp3", "m4a", "wav", "ogg", "flac"] },
   { id: "video-notes", name: "Video + notas", description: "Comentarios y momentos importantes con tiempo", ext: "md", icon: "video", category: "Multimedia", pack: "multimedia", color: "blue", action: "companion", mediaKind: "video", mediaExtensions: ["mp4", "webm", "mov", "mkv"] },
@@ -201,13 +206,13 @@ function kindFor(type) {
 }
 
 const CATALOG_CATEGORIES = Object.freeze([
-  ["Inicio", "home"], ["Notas", "notebook-pen"], ["Documentos", "files"],
+  ["Inicio", "home"], ["Favoritos", "bookmark"], ["Notas", "notebook-pen"], ["Documentos", "files"],
   ["Datos y código", "code-2"], ["Diseño", "palette"], ["Multimedia", "play"],
   ["PDF", "file-text"], ["Almacenamiento", "cloud"], ["Integraciones", "blocks"],
 ]);
 
 function catalogCategory(type) {
-  if (["open-pdf", "import-pdf", "pdf-notes"].includes(type.id)) return "PDF";
+  if (["open-pdf", "import-pdf", "pdf-notes", "pdf-tools"].includes(type.id)) return "PDF";
   if (type.action === "web-link") {
     if (type.group === "Almacenamiento") return "Almacenamiento";
     if (type.group === "Multimedia") return "Multimedia";
@@ -267,8 +272,37 @@ function validateIntegrationUrl(type, value) {
   return { ok: true, parsed, customDomain: !matchesService };
 }
 
+function validateAppUrl(value) {
+  const raw = String(value || "").trim();
+  if (!raw) return { ok: true, value: "" };
+  let parsed;
+  try { parsed = new URL(raw); } catch (error) { return { ok: false, message: "El enlace de aplicación no es válido." }; }
+  if (["javascript:", "data:", "file:", "obsidian:"].includes(parsed.protocol)) return { ok: false, message: "Ese protocolo no se permite por seguridad." };
+  return { ok: true, value: raw };
+}
+
 function yamlText(value) {
   return String(value || "").replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/[\r\n]+/g, " ");
+}
+
+function addVaultFolderField(container, app, initialValue = "", label = "Carpeta en la bóveda") {
+  const id = `pfh-folders-${Math.random().toString(36).slice(2)}`;
+  let inputEl = null;
+  new Setting(container)
+    .setName(label)
+    .setDesc("Escribe una ruta o elige una carpeta existente. Si no existe, Pointix creará únicamente esa ruta dentro de la bóveda.")
+    .addText((text) => {
+      inputEl = text.inputEl;
+      text.setValue(initialValue || "").setPlaceholder("Proyecto/Archivos");
+      inputEl.setAttribute("list", id);
+    });
+  const datalist = container.createEl("datalist", { attr: { id } });
+  const loaded = typeof app.vault.getAllLoadedFiles === "function" ? app.vault.getAllLoadedFiles() : [];
+  loaded.filter((item) => item?.children && item.path && item.path !== "/")
+    .sort((a, b) => a.path.localeCompare(b.path))
+    .slice(0, 500)
+    .forEach((folder) => datalist.createEl("option", { attr: { value: folder.path } }));
+  return { getValue: () => inputEl?.value || "", inputEl };
 }
 
 function base64ToArrayBuffer(value) {
@@ -300,6 +334,9 @@ class PointixFileHubPlugin extends Plugin {
     this.registerView(SHELL_VIEW, (leaf) => new FileShellView(leaf, this));
     this.registerObsidianProtocolHandler("pointix-open-web", async (params) => {
       await this.openWebExternal(params?.url || "");
+    });
+    this.registerObsidianProtocolHandler("pointix-open-app", async (params) => {
+      await this.openAppExternal(params?.url || "");
     });
 
     this.addRibbonIcon("files", "Abrir Pointix File Hub", () => this.openHub());
@@ -395,6 +432,7 @@ class PointixFileHubPlugin extends Plugin {
     if (type.action === "import-file") return { state: "ready", label: "Selector del sistema" };
     if (type.action === "import-pdf") return { state: "ready", label: "Importación de un archivo" };
     if (type.action === "companion") return { state: "ready", label: "Nota compañera" };
+    if (type.action === "pdf-tools") return { state: "optional", label: "Obsidian + app externa" };
     if (type.action === "web-link") return { state: "ready", label: type.mode || "Integración enlazada" };
     if (type.action === "open-pdf") return { state: "native", label: "Visor nativo" };
     if (type.pluginId) {
@@ -431,6 +469,10 @@ class PointixFileHubPlugin extends Plugin {
     }
     if (type.action === "companion") {
       new CompanionPickerModal(this.app, this, type).open();
+      return;
+    }
+    if (type.action === "pdf-tools") {
+      new PdfToolsModal(this.app, this).open();
       return;
     }
     if (type.action === "web-link") {
@@ -515,8 +557,11 @@ class PointixFileHubPlugin extends Plugin {
     return path ? this.app.vault.getAbstractFileByPath(path) : null;
   }
 
-  async createCompanionNote(file, kind) {
-    const folder = file.parent?.path && file.parent.path !== "/" ? file.parent.path : "";
+  async createCompanionNote(file, kind, requestedFolder = null) {
+    const folder = requestedFolder === null
+      ? (file.parent?.path && file.parent.path !== "/" ? file.parent.path : "")
+      : safeFolder(requestedFolder);
+    if (folder && !this.app.vault.getAbstractFileByPath(folder)) await this.ensureFolder(folder);
     const name = `${file.basename || file.name} — Notas`;
     const path = await this.uniquePath(folder, name, "md");
     const content = companionNote(kind, file);
@@ -557,6 +602,14 @@ class PointixFileHubPlugin extends Plugin {
 
   async openExternal(file) {
     try {
+      if (navigator.canShare && typeof this.app.vault.readBinary === "function") {
+        const data = await this.app.vault.readBinary(file);
+        const sharedFile = new File([data], file.name, { type: mimeForExtension(file.extension) });
+        if (navigator.canShare({ files: [sharedFile] })) {
+          await navigator.share({ files: [sharedFile], title: file.name });
+          return;
+        }
+      }
       if (typeof this.app.openWithDefaultApp === "function") {
         await this.app.openWithDefaultApp(file.path);
         return;
@@ -572,6 +625,44 @@ class PointixFileHubPlugin extends Plugin {
       console.error("Pointix File Hub: external open failed", error);
       new Notice("No fue posible abrir la aplicación predeterminada.");
     }
+  }
+
+  async openSelectedFile(source) {
+    if (!source) return;
+    try {
+      if (navigator.canShare?.({ files: [source] })) {
+        await navigator.share({ files: [source], title: source.name });
+        return;
+      }
+      if (source.path && typeof window !== "undefined" && window.require) {
+        const { shell } = window.require("electron");
+        await shell.openPath(source.path);
+        return;
+      }
+      const url = URL.createObjectURL(source);
+      window.open(url, "_blank", "noopener,noreferrer");
+      window.setTimeout(() => URL.revokeObjectURL(url), 60000);
+      new Notice("El archivo se abrió temporalmente. Para conservar un enlace estable, impórtalo a la bóveda.");
+    } catch (error) {
+      if (error?.name !== "AbortError") {
+        console.error("Pointix File Hub: selected file open failed", error);
+        new Notice("El sistema no permitió abrir ese archivo. Puedes importarlo o elegir su aplicación desde el gestor de archivos.");
+      }
+    }
+  }
+
+  async importBrowserFile(source, rawFolder, allowedExtensions = null) {
+    if (!source) throw new Error("missing-source");
+    if (source.size > 500 * 1024 * 1024) throw new Error("file-too-large");
+    const lastDot = source.name.lastIndexOf(".");
+    const rawBase = lastDot > 0 ? source.name.slice(0, lastDot) : source.name;
+    const rawExt = lastDot > 0 ? source.name.slice(lastDot + 1) : "bin";
+    const extension = rawExt.toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 12) || "bin";
+    if (allowedExtensions && !allowedExtensions.includes(extension)) throw new Error("unsupported-extension");
+    const folder = safeFolder(rawFolder || "");
+    if (folder && !this.app.vault.getAbstractFileByPath(folder)) await this.ensureFolder(folder);
+    const path = await this.uniquePath(folder, safeName(rawBase) || "Archivo", extension);
+    return this.app.vault.createBinary(path, await source.arrayBuffer());
   }
 
   async openWebExternal(value) {
@@ -597,9 +688,31 @@ class PointixFileHubPlugin extends Plugin {
     }
   }
 
+  async openAppExternal(value) {
+    const raw = String(value || "").trim();
+    let parsed;
+    try { parsed = new URL(raw); } catch (error) { new Notice("El enlace para la aplicación no es válido."); return; }
+    const blocked = ["javascript:", "data:", "file:", "obsidian:"];
+    if (blocked.includes(parsed.protocol)) { new Notice("Ese tipo de enlace no está permitido."); return; }
+    try {
+      if (typeof window !== "undefined" && window.require) {
+        const { shell } = window.require("electron");
+        await shell.openExternal(raw);
+        return;
+      }
+      window.open(raw, "_blank", "noopener,noreferrer");
+    } catch (error) {
+      console.error("Pointix File Hub: app link failed", error);
+      new Notice("No se encontró una aplicación compatible. Usa el enlace web de la ficha.");
+    }
+  }
+
   revealFile(file) {
     if (typeof this.app.showInFolder === "function") this.app.showInFolder(file.path);
-    else new Notice("Mostrar en carpeta está disponible en escritorio.");
+    else {
+      navigator.clipboard?.writeText(file.path).catch(() => {});
+      new Notice(`Ubicación en la bóveda: ${file.path}. La ruta se copió cuando el sistema lo permitió.`);
+    }
   }
 }
 
@@ -621,6 +734,16 @@ class ReorderCardsModal extends Modal {
         const grip = row.createSpan("pfh-reorder-grip"); setIcon(grip, "grip-vertical");
         const icon = row.createSpan("pfh-picker-icon"); setIcon(icon, type.icon);
         row.createEl("strong", { text: type.name });
+        const controls = row.createDiv("pfh-reorder-controls");
+        const move = (delta) => {
+          const index = this.ids.indexOf(id);
+          const next = Math.max(0, Math.min(this.ids.length - 1, index + delta));
+          if (next === index) return;
+          this.ids.splice(next, 0, this.ids.splice(index, 1)[0]);
+          render();
+        };
+        const up = controls.createEl("button", { attr: { "aria-label": `Subir ${type.name}` } }); up.append(createIcon("chevron-up")); up.addEventListener("click", () => move(-1));
+        const down = controls.createEl("button", { attr: { "aria-label": `Bajar ${type.name}` } }); down.append(createIcon("chevron-down")); down.addEventListener("click", () => move(1));
         let active = false;
         grip.addEventListener("pointerdown", (event) => { active = true; grip.setPointerCapture?.(event.pointerId); row.addClass("is-moving"); navigator.vibrate?.(20); });
         grip.addEventListener("pointermove", (event) => {
@@ -718,7 +841,9 @@ class FileHubView extends ItemView {
     const content = root.createDiv("pfh-content");
     const enabledTypes = this.plugin.enabledTypes();
     const all = enabledTypes.filter((type) => {
-      const categoryMatches = this.category === "Inicio" || catalogCategory(type) === this.category;
+      const categoryMatches = this.category === "Inicio"
+        || (this.category === "Favoritos" && (this.plugin.settings.favoriteIds || []).includes(type.id))
+        || catalogCategory(type) === this.category;
       const searchMatches = !this.query || `${type.name} ${type.description} ${type.ext} ${type.group || ""}`.toLowerCase().includes(this.query);
       return categoryMatches && searchMatches;
     });
@@ -727,9 +852,16 @@ class FileHubView extends ItemView {
       const recent = (this.plugin.settings.recentIds || []).map((id) => enabledTypes.find((type) => type.id === id)).filter(Boolean);
       const favorites = (this.plugin.settings.favoriteIds || []).map((id) => enabledTypes.find((type) => type.id === id)).filter(Boolean);
       this.renderSection(content, "Recientes", "history", recent, "Recientes");
-      this.renderSection(content, "Favoritos", "bookmark", favorites, "Favoritos");
+      if (favorites.length) this.renderSection(content, "Favoritos", "bookmark", favorites, "Favoritos");
+      else {
+        const emptyFavorites = content.createDiv("pfh-favorites-empty");
+        emptyFavorites.append(createIcon("bookmark-plus"));
+        const copy = emptyFavorites.createDiv();
+        copy.createEl("strong", { text: "Tus favoritos aparecerán aquí" });
+        copy.createEl("small", { text: "Mantén presionada una tarjeta en Android o usa clic derecho en PC y laptop." });
+      }
       const categoryGrid = content.createDiv("pfh-category-grid");
-      CATALOG_CATEGORIES.filter(([name]) => name !== "Inicio").forEach(([name, iconName]) => {
+      CATALOG_CATEGORIES.filter(([name]) => !["Inicio", "Favoritos"].includes(name)).forEach(([name, iconName]) => {
         const button = categoryGrid.createEl("button", { cls: "pfh-category-card" });
         button.append(createIcon(iconName));
         const copy = button.createSpan(); copy.createEl("strong", { text: name });
@@ -764,7 +896,7 @@ class FileHubView extends ItemView {
     card.tabIndex = 0;
     card.setAttribute("role", "button");
     card.setAttribute("aria-label", type.action ? type.name : `Crear ${type.name}`);
-    card.draggable = true;
+    card.draggable = !window.matchMedia?.("(pointer: coarse)")?.matches;
     const top = card.createDiv("pfh-card-top");
     const icon = top.createDiv("pfh-card-icon");
     setIcon(icon, type.icon);
@@ -777,13 +909,20 @@ class FileHubView extends ItemView {
     footer.createSpan({ cls: `pfh-status is-${availability.state}`, text: availability.label });
     footer.createSpan({ cls: "pfh-extension", text: type.action === "open-pdf" ? "Buscar y abrir" : type.action === "import-pdf" ? "Elegir del equipo" : type.action === "companion" ? "Enlazar archivo" : type.action === "web-link" ? type.mode : `.${type.ext}` });
     const activate = () => this.plugin.beginCreate(type);
-    let timer = null; let held = false;
+    let timer = null; let held = false; let pressX = 0; let pressY = 0;
     card.addEventListener("pointerdown", (event) => {
       if (event.pointerType === "mouse") return;
       held = false;
+      pressX = event.clientX; pressY = event.clientY;
       timer = window.setTimeout(() => { held = true; navigator.vibrate?.(25); new CardActionsModal(this.app, this.plugin, type, personalizationSection).open(); }, 560);
     });
-    ["pointerup", "pointercancel", "pointermove"].forEach((name) => card.addEventListener(name, () => { if (timer) window.clearTimeout(timer); timer = null; }));
+    ["pointerup", "pointercancel"].forEach((name) => card.addEventListener(name, () => { if (timer) window.clearTimeout(timer); timer = null; }));
+    card.addEventListener("pointermove", (event) => {
+      if (Math.hypot(event.clientX - pressX, event.clientY - pressY) > 14) {
+        if (timer) window.clearTimeout(timer);
+        timer = null;
+      }
+    });
     card.addEventListener("contextmenu", (event) => { event.preventDefault(); new CardActionsModal(this.app, this.plugin, type, personalizationSection).open(); });
     card.addEventListener("click", (event) => { if (held) { event.preventDefault(); held = false; return; } activate(); });
     card.addEventListener("keydown", (event) => { if (event.key === "Enter" || event.key === " ") activate(); });
@@ -829,7 +968,7 @@ class FileShellView extends ItemView {
     const open = actions.createEl("button", { cls: "mod-cta", text: "Abrir en la aplicación" });
     open.prepend(createIcon("external-link"));
     open.addEventListener("click", () => this.plugin.openExternal(file));
-    const reveal = actions.createEl("button", { text: "Mostrar en carpeta" });
+    const reveal = actions.createEl("button", { text: "Ubicación / carpeta" });
     reveal.prepend(createIcon("folder-open"));
     reveal.addEventListener("click", () => this.plugin.revealFile(file));
     const info = panel.createDiv("pfs-info");
@@ -913,16 +1052,19 @@ class PdfPickerModal extends Modal {
         return;
       }
       matches.slice(0, 200).forEach((file) => {
-        const button = results.createEl("button", { cls: "pfh-pdf-item", attr: { "aria-label": `Abrir ${file.path}` } });
-        const icon = button.createSpan("pfh-picker-icon");
+        const item = results.createDiv("pfh-pdf-item");
+        const icon = item.createSpan("pfh-picker-icon");
         setIcon(icon, "file-text");
-        const labels = button.createSpan("pfh-picker-text");
+        const labels = item.createSpan("pfh-picker-text");
         labels.createEl("strong", { text: file.name });
         labels.createEl("small", { text: file.parent?.path || "Raíz de la bóveda" });
-        button.addEventListener("click", async () => {
-          this.close();
-          await this.app.workspace.getLeaf("tab").openFile(file);
-        });
+        const actions = item.createSpan("pfh-picker-actions");
+        const native = actions.createEl("button", { text: "Obsidian", attr: { "aria-label": `Abrir ${file.path} con el visor de Obsidian` } });
+        native.addEventListener("click", async () => { this.close(); await this.app.workspace.getLeaf("tab").openFile(file); });
+        const external = actions.createEl("button", { text: "App", attr: { "aria-label": `Abrir ${file.path} con una aplicación` } });
+        external.addEventListener("click", async () => { await this.plugin.openExternal(file); });
+        const reveal = actions.createEl("button", { text: "Ubicación", attr: { "aria-label": `Ver ubicación de ${file.path}` } });
+        reveal.addEventListener("click", () => this.plugin.revealFile(file));
       });
       if (matches.length > 200) results.createDiv({ cls: "pfh-pdf-limit", text: `Mostrando 200 de ${matches.length} resultados. Escribe parte del nombre o de la carpeta para precisar la búsqueda.` });
     };
@@ -939,7 +1081,29 @@ class CompanionPickerModal extends Modal {
     this.modalEl.addClass("pfh-pdf-modal");
     const { contentEl } = this;
     contentEl.createEl("h2", { text: `Crear notas para ${this.type.mediaKind}` });
-    contentEl.createEl("p", { text: "Elige un archivo existente. Pointix creará junto a él una nota Markdown enlazada; el archivo original no se modifica." });
+    contentEl.createEl("p", { text: "Elige un archivo de cualquier carpeta de la bóveda o importa exactamente uno desde el dispositivo. Tú decides en qué carpeta del proyecto guardar el archivo y su nota." });
+    const folderField = addVaultFolderField(contentEl, this.app, this.plugin.settings.defaultFolder, "Carpeta del proyecto");
+    const importBox = contentEl.createDiv("pfh-import-companion");
+    importBox.createEl("strong", { text: "Importar desde el dispositivo" });
+    const accept = this.type.mediaExtensions.map((ext) => `.${ext}`).join(",");
+    const chooser = importBox.createEl("input", { cls: "pfh-file-input", attr: { type: "file", accept, "aria-label": `Importar ${this.type.mediaKind}` } });
+    const importAction = importBox.createEl("button", { cls: "mod-cta", text: "Importar y crear notas" }); importAction.disabled = true;
+    chooser.addEventListener("change", () => { importAction.disabled = !chooser.files?.[0]; });
+    importAction.addEventListener("click", async () => {
+      const source = chooser.files?.[0]; if (!source) return;
+      importAction.disabled = true;
+      try {
+        const folder = folderField.getValue();
+        const file = await this.plugin.importBrowserFile(source, folder, this.type.mediaExtensions);
+        this.close();
+        await this.plugin.createCompanionNote(file, this.type.mediaKind, folder);
+      } catch (error) {
+        console.error("Pointix File Hub: companion import failed", error);
+        new Notice(error?.message === "file-too-large" ? "El archivo supera el límite seguro de 500 MB." : "No se pudo importar ese archivo. No se examinó ni copió su carpeta.");
+        importAction.disabled = false;
+      }
+    });
+    contentEl.createEl("h3", { text: "O elegir de la bóveda" });
     const searchWrap = contentEl.createDiv("pfh-search pfh-pdf-search");
     searchWrap.append(createIcon("search"));
     const search = searchWrap.createEl("input", { attr: { type: "search", placeholder: "Buscar por nombre o carpeta…", "aria-label": "Buscar archivo multimedia" } });
@@ -958,12 +1122,37 @@ class CompanionPickerModal extends Modal {
         const button = results.createEl("button", { cls: "pfh-pdf-item", attr: { "aria-label": `Crear notas para ${file.path}` } });
         const icon = button.createSpan("pfh-picker-icon"); setIcon(icon, this.type.icon);
         const labels = button.createSpan("pfh-picker-text"); labels.createEl("strong", { text: file.name }); labels.createEl("small", { text: file.parent?.path || "Raíz de la bóveda" });
-        button.addEventListener("click", async () => { this.close(); await this.plugin.createCompanionNote(file, this.type.mediaKind); });
+        button.addEventListener("click", async () => { this.close(); await this.plugin.createCompanionNote(file, this.type.mediaKind, folderField.getValue()); });
       });
     };
     search.addEventListener("input", () => { this.query = search.value; render(); });
     render();
     setTimeout(() => search.focus(), 50);
+  }
+  onClose() { this.contentEl.empty(); }
+}
+
+class PdfToolsModal extends Modal {
+  constructor(app, plugin) { super(app); this.plugin = plugin; }
+  onOpen() {
+    this.modalEl.addClass("pfh-modal", "pfh-pdf-tools-modal");
+    const { contentEl } = this;
+    contentEl.createEl("h2", { text: "PDF: editar, anotar y firmar" });
+    contentEl.createEl("p", { text: "Pointix coordina el archivo y su contexto. El visor nativo sirve para leer; para modificar físicamente el PDF debes elegir una aplicación instalada o un complemento compatible." });
+    const options = contentEl.createDiv("pfh-capability-list");
+    const item = (iconName, title, copy) => {
+      const row = options.createDiv("pfh-capability-item"); row.append(createIcon(iconName));
+      const text = row.createDiv(); text.createEl("strong", { text: title }); text.createEl("small", { text: copy });
+    };
+    item("eye", "Visor de Obsidian", "Lectura y navegación sin alterar el archivo original.");
+    item("notebook-tabs", "PDF + notas", "Resumen, citas, páginas, pendientes y conexiones en una nota Markdown.");
+    item("external-link", "Aplicación instalada", "Resaltar, anotar, firmar, rellenar formularios o modificar con la app elegida por el sistema.");
+    item("shield-check", "Guardado seguro", "La aplicación externa controla los cambios. Mantén respaldo antes de sobrescribir un PDF importante.");
+    const actions = contentEl.createDiv("pfh-modal-actions");
+    actions.createEl("button", { text: "Abrir PDF de la bóveda" }).addEventListener("click", () => { this.close(); new PdfPickerModal(this.app, this.plugin).open(); });
+    actions.createEl("button", { text: "Importar PDF" }).addEventListener("click", () => { this.close(); new ExternalPdfImportModal(this.app, this.plugin).open(); });
+    const notes = FILE_TYPES.find((type) => type.id === "pdf-notes");
+    actions.createEl("button", { cls: "mod-cta", text: "Crear PDF + notas" }).addEventListener("click", () => { this.close(); new CompanionPickerModal(this.app, this.plugin, notes).open(); });
   }
   onClose() { this.contentEl.empty(); }
 }
@@ -977,6 +1166,7 @@ class ExternalPdfImportModal extends Modal {
     contentEl.createEl("p", { text: "Selecciona un único PDF. Pointix creará una copia dentro de la bóveda y nunca recorrerá ni copiará la carpeta que lo contiene." });
     const chooser = contentEl.createEl("input", { cls: "pfh-file-input", attr: { type: "file", accept: "application/pdf,.pdf", "aria-label": "Seleccionar PDF del equipo" } });
     const selected = contentEl.createDiv({ cls: "pfh-selected-file", text: "Ningún archivo seleccionado." });
+    const folderField = addVaultFolderField(contentEl, this.app, this.plugin.settings.defaultFolder, "Guardar PDF en");
     const buttons = contentEl.createDiv("pfh-modal-actions");
     const cancel = buttons.createEl("button", { text: "Cancelar" });
     const importButton = buttons.createEl("button", { cls: "mod-cta", text: "Importar y abrir" });
@@ -996,11 +1186,7 @@ class ExternalPdfImportModal extends Modal {
       if (this.selectedFile.size > 500 * 1024 * 1024) { new Notice("El PDF supera el límite seguro de 500 MB."); return; }
       importButton.disabled = true;
       try {
-        const folder = safeFolder(this.plugin.settings.defaultFolder || "");
-        if (folder && !this.app.vault.getAbstractFileByPath(folder)) await this.plugin.ensureFolder(folder);
-        const name = safeName(this.selectedFile.name.replace(/\.pdf$/i, "")) || "Documento";
-        const path = await this.plugin.uniquePath(folder, name, "pdf");
-        const file = await this.app.vault.createBinary(path, await this.selectedFile.arrayBuffer());
+        const file = await this.plugin.importBrowserFile(this.selectedFile, folderField.getValue(), ["pdf"]);
         this.close();
         new Notice(`PDF importado: ${file.path}`);
         await this.app.workspace.getLeaf("tab").openFile(file);
@@ -1023,27 +1209,23 @@ class ExternalFileImportModal extends Modal {
     contentEl.createEl("p", { text: "El selector oficial del sistema entregará un único archivo. Pointix no examina la carpeta, no recorre el dispositivo y no importa directorios." });
     const chooser = contentEl.createEl("input", { cls: "pfh-file-input", attr: { type: "file", "aria-label": "Elegir un archivo del dispositivo" } });
     const selected = contentEl.createDiv({ cls: "pfh-selected-file", text: "Ningún archivo seleccionado." });
+    const folderField = addVaultFolderField(contentEl, this.app, this.plugin.settings.defaultFolder, "Importar en");
     const actions = contentEl.createDiv("pfh-modal-actions");
     actions.createEl("button", { text: "Cancelar" }).addEventListener("click", () => this.close());
+    const openButton = actions.createEl("button", { text: "Abrir / compartir sin importar" }); openButton.disabled = true;
     const importButton = actions.createEl("button", { cls: "mod-cta", text: "Importar una copia" }); importButton.disabled = true;
     chooser.addEventListener("change", () => {
       this.selectedFile = chooser.files?.[0] || null;
       importButton.disabled = !this.selectedFile;
+      openButton.disabled = !this.selectedFile;
       selected.setText(this.selectedFile ? `${this.selectedFile.name} · ${formatBytes(this.selectedFile.size)}` : "Ningún archivo seleccionado.");
     });
     importButton.addEventListener("click", async () => {
       const source = this.selectedFile; if (!source || importButton.disabled) return;
       if (source.size > 500 * 1024 * 1024) { new Notice("El archivo supera el límite seguro de 500 MB."); return; }
-      const lastDot = source.name.lastIndexOf(".");
-      const rawBase = lastDot > 0 ? source.name.slice(0, lastDot) : source.name;
-      const rawExt = lastDot > 0 ? source.name.slice(lastDot + 1) : "bin";
-      const extension = rawExt.toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 12) || "bin";
       importButton.disabled = true;
       try {
-        const folder = safeFolder(this.plugin.settings.defaultFolder || "");
-        if (folder && !this.app.vault.getAbstractFileByPath(folder)) await this.plugin.ensureFolder(folder);
-        const path = await this.plugin.uniquePath(folder, safeName(rawBase) || "Archivo", extension);
-        const file = await this.app.vault.createBinary(path, await source.arrayBuffer());
+        const file = await this.plugin.importBrowserFile(source, folderField.getValue());
         this.close(); new Notice(`Archivo importado: ${file.path}`); await this.plugin.openShell(file.path);
       } catch (error) {
         console.error("Pointix File Hub: single file import failed", error);
@@ -1051,6 +1233,7 @@ class ExternalFileImportModal extends Modal {
         importButton.disabled = false;
       }
     });
+    openButton.addEventListener("click", () => this.plugin.openSelectedFile(this.selectedFile));
   }
   onClose() { this.selectedFile = null; this.contentEl.empty(); }
 }
@@ -1067,10 +1250,12 @@ class WebLinkModal extends Modal {
     compatibility.createEl("span", { text: this.type.mode === "Vista pública" ? " Comparte el recurso para visualizarlo; la edición y el inicio de sesión se realizan en el navegador." : " Pointix conservará el enlace y ofrecerá apertura externa cuando el servicio bloquee la vista o el inicio de sesión dentro de Obsidian." });
     let name = `Proyecto ${this.type.service}`;
     let url = "";
+    let appUrl = "";
     let access = "public-view";
     let purpose = "";
     new Setting(contentEl).setName("Nombre").addText((text) => text.setValue(name).onChange((value) => { name = value; }));
     new Setting(contentEl).setName("Enlace directo").setDesc("Copia el enlace del recurso, no la página de acceso ni el inicio del servicio.").addText((text) => text.setPlaceholder(this.type.domains?.[0] ? `https://${this.type.domains[0]}/…` : "https://…").onChange((value) => { url = value.trim(); }));
+    new Setting(contentEl).setName(`Enlace para abrir en ${this.type.service}`).setDesc("Opcional: pega un enlace universal o profundo de la aplicación. Si queda vacío, se intentará abrir el enlace web con una app compatible.").addText((text) => text.setPlaceholder("https://… o app://…").onChange((value) => { appUrl = value.trim(); }));
     new Setting(contentEl).setName("Acceso declarado").setDesc("Pointix lo documenta, pero no modifica los permisos del servicio.").addDropdown((dropdown) => dropdown
       .addOption("public-view", "Público para visualizar")
       .addOption("public-edit", "Público para editar")
@@ -1078,6 +1263,12 @@ class WebLinkModal extends Modal {
       .setValue(access)
       .onChange((value) => { access = value; }));
     new Setting(contentEl).setName("Propósito").setDesc("Opcional: explica por qué este recurso está conectado a tu bóveda.").addText((text) => text.setPlaceholder("Proyecto, reunión, seguimiento…").onChange((value) => { purpose = value.trim(); }));
+    const folderField = addVaultFolderField(contentEl, this.app, this.plugin.settings.defaultFolder, "Guardar ficha en");
+    if (this.type.importHelp) {
+      const migration = contentEl.createDiv("pfh-integration-guidance");
+      migration.createEl("strong", { text: "Importación manual" });
+      migration.createEl("span", { text: ` ${this.type.importHelp}` });
+    }
     const buttons = contentEl.createDiv("pfh-modal-actions");
     const cancel = buttons.createEl("button", { text: "Cancelar" });
     const create = buttons.createEl("button", { cls: "mod-cta", text: "Guardar integración" });
@@ -1085,6 +1276,8 @@ class WebLinkModal extends Modal {
     create.addEventListener("click", async () => {
       const validation = validateIntegrationUrl(this.type, url);
       if (!validation.ok) { new Notice(validation.message); return; }
+      const appValidation = validateAppUrl(appUrl);
+      if (!appValidation.ok) { new Notice(appValidation.message); return; }
       create.disabled = true;
       try {
         const service = this.type.service;
@@ -1095,13 +1288,15 @@ class WebLinkModal extends Modal {
             ? "> [!info] Requiere cuenta\n> Si el inicio de sesión falla dentro de Obsidian, utiliza **Abrir en navegador externo**. Pointix nunca solicita ni guarda tu contraseña.\n\n"
             : "> [!tip] Acceso de visualización\n> La disponibilidad depende de los permisos vigentes en el servicio. Evita publicar información privada o sensible.\n\n";
         const externalUri = `obsidian://pointix-open-web?url=${encodeURIComponent(url)}`;
+        const appUri = `obsidian://pointix-open-app?url=${encodeURIComponent(appValidation.value || url)}`;
+        const importSection = this.type.importHelp ? `## Importar manualmente\n\n${this.type.importHelp}\n\n> [!important] Pointix no entra a tu cuenta ni descarga bibliotecas completas. Exporta desde la aplicación original y selecciona únicamente lo que quieras incorporar.\n\n` : "";
         const linkedType = {
           id: this.type.id,
           name: service,
           ext: "md",
-          content: ({ title }) => `---\npointix-type: integracion\nservicio: "${yamlText(service)}"\ncategoria-integracion: "${yamlText(this.type.group)}"\nurl: "${yamlText(url)}"\nacceso: "${yamlText(accessLabels[access])}"\nmodo-pointix: "${yamlText(this.type.mode)}"\nestado: activo\nfecha-creacion: ${today()}\nultima-revision: ${today()}\ntags:\n  - pointix\n  - integracion\n---\n\n# ${title}\n\n> [!abstract] ${service}\n> **Categoría:** ${this.type.group}  ·  **Acceso:** ${accessLabels[access]}  ·  **Compatibilidad:** ${this.type.mode}\n> ${purpose || "Recurso web relacionado con esta bóveda."}\n\n## Abrir recurso\n\n- [Abrir dentro de Obsidian](${url})\n- [Abrir en navegador externo](${externalUri})\n- Enlace original: ${url}\n\n${securityNotice}> [!failure] Si aparece un error de acceso, 401 o inicio de sesión\n> El servicio puede bloquear la autenticación dentro de Obsidian. Regresa a esta ficha y usa **Abrir en navegador externo**; después comprueba que estés usando la cuenta autorizada.\n\n## Estado y responsables\n\n- **Estado:** Activo\n- **Responsable:**\n- **Próxima revisión:**\n\n## Anotaciones\n\n- \n\n## Recursos relacionados\n\n- [[ ]]\n`,
+          content: ({ title }) => `---\npointix-type: integracion\nservicio: "${yamlText(service)}"\ncategoria-integracion: "${yamlText(this.type.group)}"\nurl: "${yamlText(url)}"\napp-url: "${yamlText(appValidation.value || url)}"\nacceso: "${yamlText(accessLabels[access])}"\nmodo-pointix: "${yamlText(this.type.mode)}"\nestado: activo\nfecha-creacion: ${today()}\nultima-revision: ${today()}\ntags:\n  - pointix\n  - integracion\n---\n\n# ${title}\n\n> [!abstract] ${service}\n> **Categoría:** ${this.type.group}  ·  **Acceso:** ${accessLabels[access]}  ·  **Compatibilidad:** ${this.type.mode}\n> ${purpose || "Recurso web relacionado con esta bóveda."}\n\n## Abrir recurso\n\n- [Abrir dentro de Obsidian](${url})\n- [Abrir con ${service} o elegir aplicación](${appUri})\n- [Abrir en navegador externo](${externalUri})\n- Enlace original: ${url}\n\n${securityNotice}> [!failure] Si aparece un error de acceso, 401 o inicio de sesión\n> El servicio puede bloquear la autenticación dentro de Obsidian. Regresa a esta ficha y usa **Abrir en navegador externo**; después comprueba que estés usando la cuenta autorizada.\n\n${importSection}## Estado y responsables\n\n- **Estado:** Activo\n- **Responsable:**\n- **Próxima revisión:**\n\n## Anotaciones\n\n- \n\n## Recursos relacionados\n\n- [[ ]]\n`,
         };
-        const result = await this.plugin.createFile(linkedType, name, this.plugin.settings.defaultFolder);
+        const result = await this.plugin.createFile(linkedType, name, folderField.getValue());
         if (result) this.close();
       } finally { create.disabled = false; }
     });
@@ -1117,9 +1312,8 @@ class NameFileModal extends Modal {
     contentEl.createEl("h2", { text: `Nuevo: ${this.type.name}` });
     contentEl.createEl("p", { text: this.type.office ? `Se generará un archivo .${this.type.ext} válido desde una plantilla interna segura.` : this.type.description });
     let name = "Sin título";
-    let folder = this.plugin.settings.defaultFolder;
     new Setting(contentEl).setName("Nombre").addText((text) => text.setValue(name).onChange((value) => { name = value; }));
-    new Setting(contentEl).setName("Carpeta").setDesc("Déjala vacía para usar la raíz de la bóveda.").addText((text) => text.setValue(folder).setPlaceholder("Documentos").onChange((value) => { folder = value; }));
+    const folderField = addVaultFolderField(contentEl, this.app, this.plugin.settings.defaultFolder, "Guardar en");
     const buttons = contentEl.createDiv("pfh-modal-actions");
     const cancel = buttons.createEl("button", { text: "Cancelar" });
     cancel.addEventListener("click", () => this.close());
@@ -1128,7 +1322,7 @@ class NameFileModal extends Modal {
       if (create.disabled) return;
       create.disabled = true;
       try {
-        const result = await this.plugin.createFile(this.type, name, folder);
+        const result = await this.plugin.createFile(this.type, name, folderField.getValue());
         if (result) this.close();
       } catch (error) {
         console.error("Pointix File Hub: file creation failed", error);
@@ -1147,15 +1341,43 @@ class CreateFileModal extends Modal {
   onOpen() {
     this.modalEl.addClass("pfh-picker-modal");
     const { contentEl } = this;
-    contentEl.createEl("h2", { text: "Crear nuevo archivo" });
-    contentEl.createEl("p", { text: "Elige el formato; Pointix se encargará de la ruta correcta." });
-    const grid = contentEl.createDiv("pfh-picker-grid");
-    this.plugin.enabledTypes().forEach((type) => {
-      const button = grid.createEl("button", { cls: "pfh-picker-item" });
-      const icon = button.createSpan("pfh-picker-icon"); setIcon(icon, type.icon);
-      const text = button.createSpan("pfh-picker-text"); text.createEl("strong", { text: type.name }); text.createEl("small", { text: `.${type.ext}` });
-      button.addEventListener("click", () => { this.close(); this.plugin.beginCreate(type); });
-    });
+    contentEl.createEl("h2", { text: "Crea o conecta lo que necesites" });
+    contentEl.createEl("p", { text: "Explora por categoría: notas y plantillas, documentos, datos, diseño, multimedia, PDF, almacenamiento e integraciones. Pointix te llevará al flujo correcto." });
+    let category = "Todos"; let query = "";
+    const searchWrap = contentEl.createDiv("pfh-search"); searchWrap.append(createIcon("search"));
+    const search = searchWrap.createEl("input", { attr: { type: "search", placeholder: "Buscar nota, archivo, aplicación o servicio…" } });
+    const chips = contentEl.createDiv("pfh-picker-categories");
+    const categories = ["Todos", ...CATALOG_CATEGORIES.map(([name]) => name).filter((name) => !["Inicio", "Favoritos"].includes(name))];
+    const results = contentEl.createDiv("pfh-picker-results");
+    const render = () => {
+      chips.empty();
+      categories.forEach((name) => {
+        const chip = chips.createEl("button", { cls: category === name ? "is-active" : "", text: name });
+        chip.addEventListener("click", () => { category = name; render(); });
+      });
+      results.empty();
+      const types = this.plugin.enabledTypes().filter((type) => {
+        const matchCategory = category === "Todos" || catalogCategory(type) === category;
+        const haystack = `${type.name} ${type.description} ${type.group || ""} ${type.ext}`.toLowerCase();
+        return matchCategory && (!query || haystack.includes(query));
+      });
+      const grouped = category === "Todos" ? [...new Set(types.map((type) => catalogCategory(type)))] : [category];
+      grouped.forEach((group) => {
+        const groupTypes = types.filter((type) => catalogCategory(type) === group); if (!groupTypes.length) return;
+        const section = results.createEl("section", { cls: "pfh-picker-section" });
+        section.createEl("h3", { text: group });
+        const grid = section.createDiv("pfh-picker-grid");
+        groupTypes.forEach((type) => {
+          const button = grid.createEl("button", { cls: "pfh-picker-item" });
+          const icon = button.createSpan("pfh-picker-icon"); setIcon(icon, type.icon);
+          const text = button.createSpan("pfh-picker-text"); text.createEl("strong", { text: type.name }); text.createEl("small", { text: type.action === "web-link" ? type.group : `.${type.ext}` });
+          button.addEventListener("click", () => { this.close(); this.plugin.beginCreate(type); });
+        });
+      });
+      if (!types.length) results.createDiv({ cls: "pfh-empty", text: "No encontramos una opción con ese nombre." });
+    };
+    search.addEventListener("input", () => { query = search.value.trim().toLowerCase(); render(); });
+    render();
   }
   onClose() { this.contentEl.empty(); }
 }
@@ -1207,6 +1429,18 @@ function iconForExtension(ext) {
   if (["png", "jpg", "jpeg", "gif", "webp", "svg"].includes(ext)) return "image";
   if (["mp4", "mov", "webm"].includes(ext)) return "video";
   return "file";
+}
+
+function mimeForExtension(ext) {
+  const key = String(ext || "").toLowerCase();
+  return ({
+    pdf: "application/pdf", docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    pptx: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+    png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg", gif: "image/gif", webp: "image/webp",
+    mp3: "audio/mpeg", m4a: "audio/mp4", wav: "audio/wav", ogg: "audio/ogg",
+    mp4: "video/mp4", webm: "video/webm", txt: "text/plain", md: "text/markdown",
+  })[key] || "application/octet-stream";
 }
 
 function formatBytes(bytes) {
