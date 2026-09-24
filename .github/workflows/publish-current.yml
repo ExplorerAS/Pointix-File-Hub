@@ -66,4 +66,3 @@ jobs:
             --target "$GITHUB_SHA" \
             --title "Pointix File Hub $VERSION" \
             --notes "Public beta release of Pointix File Hub $VERSION. See CHANGELOG.md for details." \
-            --prerelease
