@@ -7,10 +7,39 @@ const {
   Setting,
   normalizePath,
   setIcon,
+  Platform,
+  TFile,
+  addIcon,
 } = require("obsidian");
 
 const HUB_VIEW = "pointix-file-hub-view";
 const SHELL_VIEW = "pointix-file-shell-view";
+// Textos del encabezado del Hub (edítalos aquí).
+const HERO_EYEBROW = "POINTIX WORKSPACE";
+const HERO_TITLE = "Tu trabajo, por fin en un solo lugar.";
+const HERO_TEXT = "Crea, abre y conecta notas, documentos, IA y nubes sin saltar de una aplicación a otra.";
+const DEFAULT_TEMPLATES_FOLDER = "Pointix/Mis plantillas";
+const START_TITLE = "Pointix File Hub";
+const START_HINT = "Crea, abre y conecta";
+// Icono propio: una cuadrícula de tarjetas con un «+» (usa currentColor para adaptarse a cualquier tema).
+const POINTIX_ICON_SVG = '<rect x="10" y="10" width="80" height="80" rx="22" fill="none" stroke="currentColor" stroke-width="7"/>'
+  + '<rect x="29" y="29" width="18" height="18" rx="5" fill="currentColor"/>'
+  + '<rect x="53" y="29" width="18" height="18" rx="5" fill="currentColor" opacity="0.6"/>'
+  + '<rect x="29" y="53" width="18" height="18" rx="5" fill="currentColor" opacity="0.6"/>'
+  + '<path d="M62 53v18M53 62h18" stroke="currentColor" stroke-width="6.5" stroke-linecap="round"/>';
+
+// Subcategorías dentro de cada categoría, para encontrar los formatos rápido.
+const SUBGROUP_BY_ID = Object.freeze({
+  docx: "Documentos de Office", xlsx: "Documentos de Office", pptx: "Documentos de Office", rtf: "Documentos de Office", univer: "Documentos de Office",
+  markdown: "Notas y texto", text: "Notas y texto", "device-file": "Desde tu equipo",
+  csv: "Tablas y datos", base: "Tablas y datos", json: "Tablas y datos",
+  yaml: "Configuración", xml: "Configuración", toml: "Configuración",
+  vcard: "Contactos, agenda y bibliografía", calendar: "Contactos, agenda y bibliografía", bibtex: "Contactos, agenda y bibliografía", opml: "Contactos, agenda y bibliografía",
+  sql: "Código y scripts", python: "Código y scripts", javascript: "Código y scripts", typescript: "Código y scripts", shell: "Código y scripts", batch: "Código y scripts", html: "Código y scripts", jupyter: "Código y scripts",
+  canvas: "Lienzos y dibujo", excalidraw: "Lienzos y dibujo",
+  mermaid: "Diagramas y gráficos", svg: "Diagramas y gráficos", drawio: "Diagramas y gráficos", freemind: "Diagramas y gráficos",
+});
+
 const PACKS = Object.freeze([
   { id: "essentials", name: "Esenciales", description: "Notas, texto y herramientas nativas de Obsidian." },
   { id: "smart-notes", name: "Notas inteligentes", description: "Plantillas útiles con estructura y propiedades listas para trabajar." },
@@ -21,6 +50,7 @@ const PACKS = Object.freeze([
   { id: "multimedia", name: "Multimedia", description: "Archivos audiovisuales enlazados con notas compañeras." },
   { id: "academic", name: "Académico", description: "Lectura, estudio, flashcards y referencias." },
   { id: "business", name: "Negocios", description: "Contactos, clientes, incidencias y control administrativo." },
+  { id: "ai", name: "IA", description: "Asistentes de inteligencia artificial y sus conversaciones enlazadas." },
 ]);
 const DEFAULT_SETTINGS = {
   defaultFolder: "",
@@ -31,8 +61,88 @@ const DEFAULT_SETTINGS = {
   mobileView: "list",
   openAfterCreate: true,
   enabledPacks: PACKS.map((pack) => pack.id),
-  catalogVersion: 5,
+  templatesFolder: DEFAULT_TEMPLATES_FOLDER,
+  showStartEntry: true,
+  showTabBarButton: true,
+  openOnStartup: false,
+  pinHubTab: false,
+  catalogVersion: 7,
 };
+
+// Every integration must declare a real web workspace, a user-specific server,
+// or explicitly state that no web application exists. Keeping this separate
+// from the visual catalog makes incomplete routes impossible to ship silently.
+const INTEGRATION_ROUTES = Object.freeze({
+  "trello-link": { hasWebApp: true, webAppUrl: "https://trello.com/", webAppStatus: "Aplicación web oficial" },
+  "asana-link": { hasWebApp: true, webAppUrl: "https://app.asana.com/", webAppStatus: "Aplicación web oficial" },
+  "clickup-link": { hasWebApp: true, webAppUrl: "https://app.clickup.com/", webAppStatus: "Aplicación web oficial" },
+  "notion-link": { hasWebApp: true, webAppUrl: "https://www.notion.so/", webAppStatus: "Aplicación web oficial" },
+  "jira-link": { webAppUserProvided: true, webAppPlaceholder: "https://tu-empresa.atlassian.net/", webAppStatus: "La dirección depende del sitio de Atlassian de la organización" },
+  "figma-link": { hasWebApp: true, webAppUrl: "https://www.figma.com/files/", webAppStatus: "Aplicación web oficial" },
+  "canva-link": { hasWebApp: true, webAppUrl: "https://www.canva.com/", webAppStatus: "Aplicación web oficial" },
+  "miro-link": { hasWebApp: true, webAppUrl: "https://miro.com/app/dashboard/", webAppStatus: "Aplicación web oficial" },
+  "mural-link": { hasWebApp: true, webAppUrl: "https://app.mural.co/", webAppStatus: "Aplicación web oficial" },
+  "lucidchart-link": { hasWebApp: true, webAppUrl: "https://lucid.app/", webAppStatus: "Aplicación web oficial" },
+  "whimsical-link": { hasWebApp: true, webAppUrl: "https://whimsical.com/", webAppStatus: "Aplicación web oficial" },
+  "framer-link": { hasWebApp: true, webAppUrl: "https://framer.com/projects/", webAppStatus: "Aplicación web oficial" },
+  "visio-link": { hasWebApp: true, webAppUrl: "https://www.microsoft365.com/launch/visio", webAppStatus: "Microsoft 365; puede requerir una licencia compatible" },
+  "yandex-boards-link": { hasWebApp: true, webAppUrl: "https://boards.yandex.ru/", webAppStatus: "Aplicación web oficial de Yandex" },
+  "genially-link": { hasWebApp: true, webAppUrl: "https://app.genially.com/", webAppStatus: "Aplicación web oficial" },
+  "excalidraw-web-link": {},
+  "slack-link": { hasWebApp: true, webAppUrl: "https://app.slack.com/", webAppStatus: "Aplicación web oficial; el espacio de trabajo puede solicitar su dominio" },
+  "discord-link": { hasWebApp: true, webAppUrl: "https://discord.com/app", webAppStatus: "Aplicación web oficial" },
+  "teams-link": { hasWebApp: true, webAppUrl: "https://teams.microsoft.com/", webAppStatus: "Aplicación web oficial" },
+  "loom-link": { hasWebApp: true, webAppUrl: "https://www.loom.com/home", webAppStatus: "Aplicación web oficial" },
+  "whatsapp-link": {},
+  "telegram-link": {},
+  "calendly-link": { hasWebApp: true, webAppUrl: "https://calendly.com/app/", webAppStatus: "Aplicación web oficial" },
+  "google-calendar-link": { hasWebApp: true, webAppUrl: "https://calendar.google.com/calendar/u/0/r", webAppStatus: "Google puede restringir el inicio de sesión en navegadores embebidos" },
+  "yandex-calendar-link": { hasWebApp: true, webAppUrl: "https://calendar.yandex.com/", webAppStatus: "Aplicación web oficial de Yandex" },
+  "airtable-link": { hasWebApp: true, webAppUrl: "https://airtable.com/", webAppStatus: "Aplicación web oficial" },
+  "typeform-link": { hasWebApp: true, webAppUrl: "https://admin.typeform.com/", webAppStatus: "Aplicación web oficial" },
+  "google-forms-link": {},
+  "yandex-forms-link": { hasWebApp: true, webAppUrl: "https://forms.yandex.com/admin/", webAppStatus: "Aplicación web oficial de Yandex" },
+  "microsoft-forms-link": { hasWebApp: true, webAppUrl: "https://forms.office.com/", webAppStatus: "Aplicación web oficial de Microsoft 365" },
+  "joplin-link": { hasWebApp: false, webAppUrl: undefined, webAppStatus: "Joplin no ofrece un editor web; Joplin Cloud es sincronización y publicación", appProtocols: ["joplin:"], appUrlPlaceholder: "joplin://x-callback-url/openNote?id=…" },
+  "evernote-link": { hasWebApp: true },
+  "standard-notes-link": { hasWebApp: true },
+  "notesnook-link": {},
+  "simplenote-link": {},
+  "upnote-link": {},
+  "github-link": { hasWebApp: true, webAppUrl: "https://github.com/", webAppStatus: "Aplicación web oficial" },
+  "gitlab-link": { hasWebApp: true, webAppUrl: "https://gitlab.com/", webAppStatus: "GitLab.com; una instalación autohospedada usa su propia dirección" },
+  "codepen-link": { hasWebApp: true, webAppUrl: "https://codepen.io/your-work/", webAppStatus: "Aplicación web oficial" },
+  "replit-link": { hasWebApp: true, webAppUrl: "https://replit.com/~", webAppStatus: "Aplicación web oficial" },
+  "google-sheets-link": {},
+  "youtube-link": { hasWebApp: true, webAppUrl: "https://www.youtube.com/", webAppStatus: "Aplicación web oficial" },
+  "vimeo-link": { hasWebApp: true, webAppUrl: "https://vimeo.com/manage/videos", webAppStatus: "Aplicación web oficial" },
+  "google-drive-link": {},
+  "onedrive-link": { hasWebApp: true, webAppUrl: "https://onedrive.live.com/", webAppStatus: "OneDrive personal; cuentas empresariales pueden redirigir a su tenant de Microsoft 365" },
+  "yandex-disk-link": { hasWebApp: true, webAppUrl: "https://disk.yandex.com/client/disk", webAppStatus: "Aplicación web oficial de Yandex Disk" },
+  "dropbox-link": { hasWebApp: true, webAppUrl: "https://www.dropbox.com/home", webAppStatus: "Aplicación web oficial" },
+  "box-link": { hasWebApp: true, webAppUrl: "https://app.box.com/folder/0", webAppStatus: "Aplicación web oficial", appProtocols: ["https:", "boxapp:"], appUrlPlaceholder: "boxapp://file?id=…" },
+  "proton-drive-link": { hasWebApp: true, webAppUrl: "https://drive.proton.me/", webAppStatus: "Aplicación web oficial" },
+  "terabox-link": { hasWebApp: true, webAppUrl: "https://www.terabox.com/main", webAppStatus: "Aplicación web oficial; la disponibilidad puede variar por región" },
+  "mega-link": { hasWebApp: true, webAppUrl: "https://mega.nz/fm", webAppStatus: "Aplicación web oficial" },
+  "pcloud-link": { hasWebApp: true, webAppUrl: "https://my.pcloud.com/", webAppStatus: "Aplicación web oficial" },
+  "chatgpt-link": { hasWebApp: true, webAppUrl: "https://chatgpt.com/", webAppStatus: "Aplicación web oficial; requiere cuenta para conversar" },
+  "claude-link": { hasWebApp: true, webAppUrl: "https://claude.ai/", webAppStatus: "Aplicación web oficial; requiere cuenta" },
+  "gemini-link": { hasWebApp: true, webAppUrl: "https://gemini.google.com/app", webAppStatus: "Google puede restringir el inicio de sesión en navegadores embebidos" },
+  "copilot-link": { hasWebApp: true, webAppUrl: "https://copilot.microsoft.com/", webAppStatus: "Aplicación web oficial de Microsoft" },
+  "perplexity-link": { hasWebApp: true, webAppUrl: "https://www.perplexity.ai/", webAppStatus: "Aplicación web oficial" },
+  "grok-link": { hasWebApp: true, webAppUrl: "https://grok.com/", webAppStatus: "Aplicación web oficial de xAI" },
+  "mistral-link": { hasWebApp: true, webAppUrl: "https://chat.mistral.ai/", webAppStatus: "Le Chat, aplicación web oficial de Mistral AI" },
+  "deepseek-link": { hasWebApp: true, webAppUrl: "https://chat.deepseek.com/", webAppStatus: "Aplicación web oficial de DeepSeek" },
+  "qwen-link": { hasWebApp: true, webAppUrl: "https://chat.qwen.ai/", webAppStatus: "Aplicación web oficial de Qwen (Alibaba Cloud)" },
+  "kimi-link": { hasWebApp: true, webAppUrl: "https://www.kimi.com/", webAppStatus: "Aplicación web oficial de Moonshot AI" },
+  "zai-link": { hasWebApp: true, webAppUrl: "https://chat.z.ai/", webAppStatus: "Aplicación web oficial de Z.ai" },
+  "hunyuan-link": { hasWebApp: true, webAppUrl: "https://hy.tencent.ai/", webAppStatus: "Aplicación web de Tencent Hy (Hunyuan); requiere cuenta" },
+  "wenxin-link": { hasWebApp: true, webAppUrl: "https://wenxin.baidu.com/", webAppStatus: "Asistente Wenxin de Baidu; puede requerir cuenta de Baidu" },
+  "yuanbao-link": { hasWebApp: true, webAppUrl: "https://yuanbao.tencent.com/", webAppStatus: "Aplicación web de Tencent Yuanbao; puede requerir cuenta de WeChat o QQ" },
+  "alice-link": { hasWebApp: true, webAppUrl: "https://alice.yandex.ru/", webAppStatus: "Alice AI, asistente oficial de Yandex; se usa con tu cuenta de Yandex" },
+  "yandex-aistudio-link": { hasWebApp: true, webAppUrl: "https://aistudio.yandex.ru/", webAppStatus: "Yandex AI Studio: plataforma de modelos y agentes; se usa con tu cuenta de Yandex" },
+  "nextcloud-link": { webAppUserProvided: true, webAppPlaceholder: "https://nube.tu-organizacion.com/", webAppStatus: "Nextcloud es autohospedado; la dirección depende del servidor del usuario" },
+});
 
 const WEB_INTEGRATIONS = Object.freeze([
   // Gestión de proyectos
@@ -53,12 +163,15 @@ const WEB_INTEGRATIONS = Object.freeze([
   { id: "visio-link", service: "Microsoft Visio", group: "Diseño visual", description: "Diagramas de Visio alojados en Microsoft 365", icon: "network", color: "blue", pack: "visual", domains: ["office.com", "microsoft365.com", "sharepoint.com", "onedrive.live.com", "1drv.ms"], mode: "Navegador" },
   { id: "yandex-boards-link", service: "Yandex Boards", group: "Diseño visual", description: "Pizarras en línea para proyectos y equipos", icon: "layout-dashboard", color: "amber", pack: "visual", domains: ["boards.yandex.ru", "boards.yandex.com"], mode: "Requiere cuenta" },
   { id: "genially-link", service: "Genially", group: "Diseño visual", description: "Presentaciones, infografías y contenido interactivo", icon: "sparkles", color: "violet", pack: "visual", domains: ["genially.com", "view.genially.com"], mode: "Vista pública" },
+  { id: "excalidraw-web-link", service: "Excalidraw Web", group: "Diseño visual", description: "Lienzos colaborativos y dibujos compartidos en Excalidraw", icon: "pen-tool", color: "pink", pack: "visual", domains: ["excalidraw.com"], mode: "Híbrida", hasWebApp: true, webAppUrl: "https://excalidraw.com", webAppStatus: "Oficial; el lienzo web es independiente del complemento local de Obsidian", appHelp: "Pega un enlace compartido de Excalidraw. En dispositivos que lo reconozcan, el sistema podrá ofrecer la aplicación o PWA instalada; Pointix no inventa un protocolo nativo.", publicLinkHelp: "Pega únicamente un enlace de un lienzo compartido. No publiques información sensible: quien tenga el enlace puede acceder según el modo de colaboración elegido." },
 
   // Comunicación
   { id: "slack-link", service: "Slack", group: "Comunicación", description: "Canales, hilos y mensajes concretos", icon: "message-square", color: "violet", pack: "business", domains: ["slack.com"], mode: "Requiere cuenta" },
   { id: "discord-link", service: "Discord", group: "Comunicación", description: "Servidores, canales e invitaciones", icon: "messages-square", color: "violet", pack: "business", domains: ["discord.com", "discord.gg"], mode: "Requiere cuenta" },
   { id: "teams-link", service: "Microsoft Teams", group: "Comunicación", description: "Reuniones, equipos y conversaciones", icon: "users-round", color: "blue", pack: "business", domains: ["teams.microsoft.com", "teams.live.com"], mode: "Requiere cuenta" },
   { id: "loom-link", service: "Loom", group: "Comunicación", description: "Videos explicativos y comentarios", icon: "video", color: "pink", pack: "multimedia", domains: ["loom.com"], mode: "Híbrida" },
+  { id: "whatsapp-link", service: "WhatsApp", group: "Comunicación", description: "Chats directos, grupos y llamadas mediante enlaces oficiales", icon: "message-circle", color: "emerald", pack: "business", domains: ["wa.me", "api.whatsapp.com", "chat.whatsapp.com", "call.whatsapp.com"], mode: "Híbrida", hasWebApp: true, webAppUrl: "https://web.whatsapp.com", webAppStatus: "Oficial; requiere vincular o autenticar la cuenta y puede depender de las restricciones del navegador embebido", appDomains: ["wa.me", "api.whatsapp.com", "chat.whatsapp.com", "call.whatsapp.com"], appUrlPlaceholder: "https://wa.me/521…", appHelp: "Pega un enlace oficial wa.me, de grupo o de llamada. El enlace HTTPS permite que el sistema abra WhatsApp instalado cuando sea compatible; Pointix no almacena números ni mensajes.", publicLinkHelp: "WhatsApp no publica conversaciones para lectura o edición. Este campo guarda un enlace de contacto, grupo o llamada que requiere WhatsApp y los permisos correspondientes.", defaultAccess: "private", accessOptions: ["private"] },
+  { id: "telegram-link", service: "Telegram", group: "Comunicación", description: "Chats, canales, grupos y mensajes mediante enlaces oficiales", icon: "send", color: "blue", pack: "business", domains: ["t.me", "telegram.me", "telegram.dog"], mode: "Híbrida", hasWebApp: true, webAppUrl: "https://web.telegram.org/a/", webAppStatus: "Oficial; el acceso a contenido privado requiere una sesión autorizada", appProtocols: ["https:", "tg:"], appDomains: ["t.me", "telegram.me", "telegram.dog"], appUrlPlaceholder: "tg://resolve?domain=usuario", appHelp: "Pega un enlace t.me o tg:// oficial para un usuario, grupo, canal, mensaje o invitación. Telegram registra ambos formatos como enlaces profundos del sistema.", publicLinkHelp: "Los enlaces públicos t.me pueden mostrar usuarios, canales, grupos o mensajes. Los enlaces privados e invitaciones requieren autorización y deben tratarse como información sensible." },
 
   // Productividad y formularios
   { id: "calendly-link", service: "Calendly", group: "Productividad y formularios", description: "Agendamiento y páginas de reserva", icon: "calendar-clock", color: "blue", pack: "business", domains: ["calendly.com"], mode: "Vista pública" },
@@ -66,17 +179,17 @@ const WEB_INTEGRATIONS = Object.freeze([
   { id: "yandex-calendar-link", service: "Yandex Calendar", group: "Productividad y formularios", description: "Calendarios, eventos y agenda de Yandex", icon: "calendar-days", color: "amber", pack: "business", domains: ["calendar.yandex.ru", "calendar.yandex.com"], mode: "Requiere cuenta" },
   { id: "airtable-link", service: "Airtable", group: "Productividad y formularios", description: "Bases visuales y vistas compartidas", icon: "table-properties", color: "emerald", pack: "data", domains: ["airtable.com"], mode: "Híbrida" },
   { id: "typeform-link", service: "Typeform", group: "Productividad y formularios", description: "Formularios y encuestas", icon: "clipboard-list", color: "blue", pack: "business", domains: ["typeform.com"], mode: "Vista pública" },
-  { id: "google-forms-link", service: "Google Forms", group: "Productividad y formularios", description: "Formularios y respuestas de Google", icon: "clipboard-list", color: "violet", pack: "business", domains: ["docs.google.com", "forms.gle"], pathHint: "/forms/", mode: "Vista pública" },
+  { id: "google-forms-link", service: "Google Forms", group: "Productividad y formularios", description: "Crear formularios, recopilar respuestas y enlazar vistas compartidas", icon: "clipboard-list", color: "violet", pack: "business", domains: ["docs.google.com", "forms.gle"], pathHint: "/forms/", mode: "Híbrida", hasWebApp: true, webAppUrl: "https://docs.google.com/forms/u/0/", webAppStatus: "Oficial; Google puede bloquear la autenticación dentro de navegadores embebidos", appHelp: "Pega el enlace HTTPS del formulario. En Android o iOS se abrirá mediante la aplicación o navegador que el sistema considere compatible; Google no publica un protocolo nativo exclusivo para Forms.", publicLinkHelp: "Usa el enlace publicado para responder o el enlace de colaboración para editar. Pointix documenta el acceso declarado, pero no cambia los permisos de Google." },
   { id: "yandex-forms-link", service: "Yandex Forms", group: "Productividad y formularios", description: "Encuestas, solicitudes, pruebas y cuestionarios", icon: "clipboard-list", color: "amber", pack: "business", domains: ["forms.yandex.ru", "forms.yandex.com"], mode: "Híbrida" },
   { id: "microsoft-forms-link", service: "Microsoft Forms", group: "Productividad y formularios", description: "Formularios, cuestionarios y respuestas de Microsoft 365", icon: "clipboard-check", color: "blue", pack: "business", domains: ["forms.office.com", "forms.microsoft.com"], mode: "Híbrida" },
 
   // Notas y conocimiento
-  { id: "joplin-link", service: "Joplin", group: "Notas y conocimiento", description: "Notas Markdown, cuadernos y Joplin Cloud", icon: "notebook-pen", color: "blue", pack: "smart-notes", domains: ["joplincloud.com", "joplinapp.org"], mode: "Híbrida", importHelp: "Exporta desde Joplin como Markdown + Front Matter o JEX y selecciona manualmente el archivo exportado." },
-  { id: "evernote-link", service: "Evernote", group: "Notas y conocimiento", description: "Notas y cuadernos; migración mediante ENEX o HTML", icon: "notebook-tabs", color: "emerald", pack: "smart-notes", domains: ["evernote.com"], mode: "Híbrida", importHelp: "Exporta manualmente uno o varios cuadernos como ENEX o HTML desde Evernote de escritorio." },
-  { id: "standard-notes-link", service: "Standard Notes", group: "Notas y conocimiento", description: "Notas cifradas, editores y respaldos portables", icon: "shield-check", color: "violet", pack: "smart-notes", domains: ["standardnotes.com", "app.standardnotes.com"], mode: "Híbrida", importHelp: "Descarga un respaldo descifrado; el ZIP incluye notas individuales en texto plano que puedes importar manualmente a la bóveda." },
-  { id: "notesnook-link", service: "Notesnook", group: "Notas y conocimiento", description: "Notas privadas, cuadernos y respaldos cifrados", icon: "lock-keyhole", color: "blue", pack: "smart-notes", domains: ["notesnook.com", "app.notesnook.com"], mode: "Híbrida", importHelp: "Exporta desde Notesnook como Markdown, HTML o texto y selecciona manualmente los archivos que quieras conservar en Obsidian." },
-  { id: "simplenote-link", service: "Simplenote", group: "Notas y conocimiento", description: "Notas ligeras sincronizadas y publicables", icon: "notebook", color: "blue", pack: "smart-notes", domains: ["simplenote.com", "app.simplenote.com"], mode: "Híbrida", importHelp: "Exporta tus notas como ZIP; selecciona manualmente los TXT o Markdown que quieras incorporar." },
-  { id: "upnote-link", service: "UpNote", group: "Notas y conocimiento", description: "Notas, espacios y cuadernos multiplataforma", icon: "notebook-tabs", color: "amber", pack: "smart-notes", domains: ["getupnote.com", "app.getupnote.com"], mode: "Híbrida", importHelp: "La exportación completa se realiza desde UpNote de escritorio; usa Markdown para notas simples o HTML para conservar más formato y adjuntos." },
+  { id: "joplin-link", service: "Joplin", group: "Notas y conocimiento", description: "Notas Markdown, cuadernos y Joplin Cloud", icon: "notebook-pen", color: "blue", pack: "smart-notes", domains: ["joplincloud.com", "joplinapp.org"], mode: "Híbrida", hasWebApp: true, webAppUrl: "https://app.joplincloud.com", webAppStatus: "Oficial; prueba el inicio de sesión desde el enlace de la ficha", appProtocols: ["joplin:"], appUrlPlaceholder: "joplin://x-callback-url/openNote?id=…", appHelp: "En Joplin, haz clic derecho sobre una nota, cuaderno o etiqueta y elige Copiar enlace externo.", importHelp: "Exporta desde Joplin como Markdown + Front Matter o JEX y selecciona manualmente el archivo exportado." },
+  { id: "evernote-link", service: "Evernote", group: "Notas y conocimiento", description: "Notas y cuadernos; migración mediante ENEX o HTML", icon: "notebook-tabs", color: "emerald", pack: "smart-notes", domains: ["evernote.com"], mode: "Híbrida", webAppUrl: "https://www.evernote.com/client/web", importHelp: "Exporta manualmente uno o varios cuadernos como ENEX o HTML desde Evernote de escritorio." },
+  { id: "standard-notes-link", service: "Standard Notes", group: "Notas y conocimiento", description: "Notas cifradas, editores y respaldos portables", icon: "shield-check", color: "violet", pack: "smart-notes", domains: ["standardnotes.com", "app.standardnotes.com"], mode: "Híbrida", webAppUrl: "https://app.standardnotes.com", importHelp: "Descarga un respaldo descifrado; el ZIP incluye notas individuales en texto plano que puedes importar manualmente a la bóveda." },
+  { id: "notesnook-link", service: "Notesnook", group: "Notas y conocimiento", description: "Notas privadas, cuadernos y respaldos cifrados", icon: "lock-keyhole", color: "blue", pack: "smart-notes", domains: ["notesnook.com", "app.notesnook.com", "monogr.ph"], mode: "Híbrida", hasWebApp: true, webAppUrl: "https://app.notesnook.com", webAppStatus: "Oficial; permite iniciar sesión y trabajar con las notas desde la aplicación web", appProtocols: ["https:", "nn:"], appDomains: ["notesnook.com", "app.notesnook.com", "monogr.ph"], appUrlPlaceholder: "nn://note/<id>", appHelp: "En Notesnook copia el enlace interno de una nota, cuaderno, etiqueta o color. Los enlaces nn:// abren directamente la aplicación instalada.", publicLinkHelp: "Opcional. Pega un enlace Monograph publicado por Notesnook. Es de lectura y puede tener contraseña o autodestrucción; no lo declares como edición pública.", accessOptions: ["public-view", "private"], importHelp: "Exporta desde Notesnook como Markdown, HTML o texto y selecciona manualmente los archivos que quieras conservar en Obsidian." },
+  { id: "simplenote-link", service: "Simplenote", group: "Notas y conocimiento", description: "Notas ligeras sincronizadas y publicables", icon: "notebook", color: "blue", pack: "smart-notes", domains: ["simplenote.com", "app.simplenote.com"], mode: "Híbrida", hasWebApp: true, webAppUrl: "https://app.simplenote.com", webAppStatus: "Oficial; permite iniciar sesión y trabajar con las notas desde el navegador", appHelp: "Simplenote no documenta un protocolo externo estable para abrir una nota concreta en la aplicación instalada. Usa el enlace HTTPS publicado o la aplicación web mientras esa ruta no esté confirmada.", publicLinkHelp: "Opcional. Pega el enlace publicado por Simplenote para consultar la nota. La colaboración editable requiere invitar a otra cuenta y no equivale a una publicación anónima.", accessOptions: ["public-view", "private"], importHelp: "Exporta tus notas como ZIP; selecciona manualmente los TXT o Markdown que quieras incorporar." },
+  { id: "upnote-link", service: "UpNote", group: "Notas y conocimiento", description: "Notas, espacios y cuadernos multiplataforma", icon: "notebook-tabs", color: "amber", pack: "smart-notes", domains: ["getupnote.com", "app.getupnote.com"], mode: "Híbrida", hasWebApp: false, appHelp: "UpNote no ofrece una aplicación web de edición ni un protocolo profundo oficial confirmado. Puedes guardar una nota publicada de lectura o importar manualmente una exportación.", publicLinkHelp: "Pega una nota publicada desde UpNote. La publicación es de lectura y requiere UpNote Premium; no la declares como edición pública.", accessOptions: ["public-view", "private"], importHelp: "La exportación completa se realiza desde UpNote de escritorio; usa Markdown para notas simples o HTML para conservar más formato y adjuntos." },
 
   // Desarrollo
   { id: "github-link", service: "GitHub", group: "Desarrollo", description: "Repositorios, incidencias y pull requests", icon: "github", color: "violet", pack: "code", domains: ["github.com"], mode: "Híbrida" },
@@ -85,14 +198,32 @@ const WEB_INTEGRATIONS = Object.freeze([
   { id: "replit-link", service: "Replit", group: "Desarrollo", description: "Proyectos y aplicaciones en la nube", icon: "square-code", color: "orange", pack: "code", domains: ["replit.com"], mode: "Híbrida" },
 
   // Oficina web
-  { id: "google-sheets-link", service: "Google Sheets", group: "Oficina web", description: "Hojas de cálculo compartidas", icon: "sheet", color: "emerald", pack: "office", domains: ["docs.google.com"], pathHint: "/spreadsheets/d/", mode: "Híbrida" },
+  { id: "google-sheets-link", service: "Google Sheets", group: "Oficina web", description: "Hojas de cálculo compartidas", icon: "sheet", color: "emerald", pack: "office", domains: ["docs.google.com"], pathHint: "/spreadsheets/d/", mode: "Híbrida", hasWebApp: true, webAppUrl: "https://docs.google.com/spreadsheets/u/0/", webAppStatus: "Oficial; Google puede bloquear la autenticación dentro de navegadores embebidos", appHelp: "Pega el enlace HTTPS de una hoja concreta. En Android o iOS el sistema puede ofrecer Google Sheets instalado; en escritorio se utilizará la experiencia web oficial.", publicLinkHelp: "Opcional. Pega el enlace compartido de una hoja, no la página de inicio ni la cuenta de Google. Los permisos para ver, comentar o editar siguen controlados por Google." },
 
   // Multimedia
   { id: "youtube-link", service: "YouTube", group: "Multimedia", description: "Videos, listas y transmisiones", icon: "youtube", color: "pink", pack: "multimedia", domains: ["youtube.com", "youtu.be"], mode: "Vista pública" },
   { id: "vimeo-link", service: "Vimeo", group: "Multimedia", description: "Videos y presentaciones", icon: "video", color: "blue", pack: "multimedia", domains: ["vimeo.com"], mode: "Vista pública" },
 
+  // Inteligencia artificial
+  { id: "chatgpt-link", service: "ChatGPT", group: "Inteligencia artificial", subgroup: "Estados Unidos y Europa", description: "Conversaciones, proyectos y archivos generados", icon: "bot", color: "emerald", pack: "ai", domains: ["chatgpt.com", "chat.openai.com"], mode: "Híbrida", defaultAccess: "private", appUrlPlaceholder: "https://chatgpt.com/share/…", appHelp: "Opcional. Pega un enlace https de ChatGPT: en el teléfono o la tableta el sistema puede abrir la app oficial si está instalada; si no, se abre el navegador.", publicLinkHelp: "Opcional. Pega el enlace de una conversación compartida (por ejemplo https://chatgpt.com/share/…). Quien tenga ese enlace puede verla.", importHelp: "Descarga o copia el resultado desde ChatGPT y usa Mis dispositivos para traer solo ese archivo a la carpeta de tu proyecto." },
+  { id: "claude-link", service: "Claude", group: "Inteligencia artificial", subgroup: "Estados Unidos y Europa", description: "Conversaciones y proyectos con Claude", icon: "sparkles", color: "orange", pack: "ai", domains: ["claude.ai"], mode: "Híbrida", defaultAccess: "private", appUrlPlaceholder: "https://claude.ai/share/…", appHelp: "Opcional. Pega un enlace https de Claude: en el teléfono o la tableta el sistema puede abrir la app oficial si está instalada; si no, se abre el navegador.", publicLinkHelp: "Opcional. Pega el enlace de una conversación compartida (por ejemplo https://claude.ai/share/…). Quien tenga ese enlace puede verla.", importHelp: "Descarga o copia el resultado desde Claude y usa Mis dispositivos para traer solo ese archivo a la carpeta de tu proyecto." },
+  { id: "gemini-link", service: "Gemini", group: "Inteligencia artificial", subgroup: "Estados Unidos y Europa", description: "Asistente de Google con búsqueda y archivos", icon: "sparkles", color: "blue", pack: "ai", domains: ["gemini.google.com", "g.co"], mode: "Híbrida", defaultAccess: "private", appUrlPlaceholder: "https://gemini.google.com/share/…", appHelp: "Opcional. Pega un enlace https de Gemini: en el teléfono o la tableta el sistema puede abrir la app oficial si está instalada; si no, se abre el navegador.", publicLinkHelp: "Opcional. Pega el enlace de una conversación compartida (por ejemplo https://gemini.google.com/share/…). Quien tenga ese enlace puede verla.", importHelp: "Descarga o copia el resultado desde Gemini y usa Mis dispositivos para traer solo ese archivo a la carpeta de tu proyecto." },
+  { id: "copilot-link", service: "Microsoft Copilot", group: "Inteligencia artificial", subgroup: "Estados Unidos y Europa", description: "Asistente de Microsoft para conversar y crear", icon: "bot", color: "blue", pack: "ai", domains: ["copilot.microsoft.com"], mode: "Híbrida", defaultAccess: "private", appUrlPlaceholder: "https://copilot.microsoft.com/…", appHelp: "Opcional. Pega un enlace https de Microsoft Copilot: en el teléfono o la tableta el sistema puede abrir la app oficial si está instalada; si no, se abre el navegador.", publicLinkHelp: "Opcional. Pega el enlace de una conversación compartida (por ejemplo https://copilot.microsoft.com/…). Quien tenga ese enlace puede verla.", importHelp: "Descarga o copia el resultado desde Microsoft Copilot y usa Mis dispositivos para traer solo ese archivo a la carpeta de tu proyecto." },
+  { id: "perplexity-link", service: "Perplexity", group: "Inteligencia artificial", subgroup: "Estados Unidos y Europa", description: "Respuestas con fuentes citadas", icon: "search", color: "violet", pack: "ai", domains: ["perplexity.ai"], mode: "Híbrida", defaultAccess: "private", appUrlPlaceholder: "https://www.perplexity.ai/search/…", appHelp: "Opcional. Pega un enlace https de Perplexity: en el teléfono o la tableta el sistema puede abrir la app oficial si está instalada; si no, se abre el navegador.", publicLinkHelp: "Opcional. Pega el enlace de una conversación compartida (por ejemplo https://www.perplexity.ai/search/…). Quien tenga ese enlace puede verla.", importHelp: "Descarga o copia el resultado desde Perplexity y usa Mis dispositivos para traer solo ese archivo a la carpeta de tu proyecto." },
+  { id: "grok-link", service: "Grok", group: "Inteligencia artificial", subgroup: "Estados Unidos y Europa", description: "Asistente de xAI", icon: "bot", color: "violet", pack: "ai", domains: ["grok.com"], mode: "Híbrida", defaultAccess: "private", appUrlPlaceholder: "https://grok.com/share/…", appHelp: "Opcional. Pega un enlace https de Grok: en el teléfono o la tableta el sistema puede abrir la app oficial si está instalada; si no, se abre el navegador.", publicLinkHelp: "Opcional. Pega el enlace de una conversación compartida (por ejemplo https://grok.com/share/…). Quien tenga ese enlace puede verla.", importHelp: "Descarga o copia el resultado desde Grok y usa Mis dispositivos para traer solo ese archivo a la carpeta de tu proyecto." },
+  { id: "mistral-link", service: "Mistral Le Chat", group: "Inteligencia artificial", subgroup: "Estados Unidos y Europa", description: "Asistente europeo de Mistral AI", icon: "bot", color: "amber", pack: "ai", domains: ["chat.mistral.ai", "mistral.ai"], mode: "Híbrida", defaultAccess: "private", appUrlPlaceholder: "https://chat.mistral.ai/…", appHelp: "Opcional. Pega un enlace https de Mistral Le Chat: en el teléfono o la tableta el sistema puede abrir la app oficial si está instalada; si no, se abre el navegador.", publicLinkHelp: "Opcional. Pega el enlace de una conversación compartida (por ejemplo https://chat.mistral.ai/…). Quien tenga ese enlace puede verla.", importHelp: "Descarga o copia el resultado desde Mistral Le Chat y usa Mis dispositivos para traer solo ese archivo a la carpeta de tu proyecto." },
+  { id: "deepseek-link", service: "DeepSeek", group: "Inteligencia artificial", subgroup: "China", description: "Asistente para razonar y programar", icon: "brain-circuit", color: "blue", pack: "ai", domains: ["deepseek.com"], mode: "Híbrida", defaultAccess: "private", appUrlPlaceholder: "https://chat.deepseek.com/share/…", appHelp: "Opcional. Pega un enlace https de DeepSeek: en el teléfono o la tableta el sistema puede abrir la app oficial si está instalada; si no, se abre el navegador.", publicLinkHelp: "Opcional. Pega el enlace de una conversación compartida (por ejemplo https://chat.deepseek.com/share/…). Quien tenga ese enlace puede verla.", importHelp: "Descarga o copia el resultado desde DeepSeek y usa Mis dispositivos para traer solo ese archivo a la carpeta de tu proyecto." },
+  { id: "qwen-link", service: "Qwen", group: "Inteligencia artificial", subgroup: "China", description: "Asistente de Alibaba Cloud", icon: "bot", color: "violet", pack: "ai", domains: ["qwen.ai"], mode: "Híbrida", defaultAccess: "private", appUrlPlaceholder: "https://chat.qwen.ai/s/…", appHelp: "Opcional. Pega un enlace https de Qwen: en el teléfono o la tableta el sistema puede abrir la app oficial si está instalada; si no, se abre el navegador.", publicLinkHelp: "Opcional. Pega el enlace de una conversación compartida (por ejemplo https://chat.qwen.ai/s/…). Quien tenga ese enlace puede verla.", importHelp: "Descarga o copia el resultado desde Qwen y usa Mis dispositivos para traer solo ese archivo a la carpeta de tu proyecto." },
+  { id: "kimi-link", service: "Kimi", group: "Inteligencia artificial", subgroup: "China", description: "Asistente de Moonshot AI con contexto largo", icon: "bot", color: "pink", pack: "ai", domains: ["kimi.com"], mode: "Híbrida", defaultAccess: "private", appUrlPlaceholder: "https://www.kimi.com/share/…", appHelp: "Opcional. Pega un enlace https de Kimi: en el teléfono o la tableta el sistema puede abrir la app oficial si está instalada; si no, se abre el navegador.", publicLinkHelp: "Opcional. Pega el enlace de una conversación compartida (por ejemplo https://www.kimi.com/share/…). Quien tenga ese enlace puede verla.", importHelp: "Descarga o copia el resultado desde Kimi y usa Mis dispositivos para traer solo ese archivo a la carpeta de tu proyecto." },
+  { id: "zai-link", service: "Z.ai", group: "Inteligencia artificial", subgroup: "China", description: "Asistente con los modelos GLM", icon: "bot", color: "emerald", pack: "ai", domains: ["z.ai"], mode: "Híbrida", defaultAccess: "private", appUrlPlaceholder: "https://chat.z.ai/s/…", appHelp: "Opcional. Pega un enlace https de Z.ai: en el teléfono o la tableta el sistema puede abrir la app oficial si está instalada; si no, se abre el navegador.", publicLinkHelp: "Opcional. Pega el enlace de una conversación compartida (por ejemplo https://chat.z.ai/s/…). Quien tenga ese enlace puede verla.", importHelp: "Descarga o copia el resultado desde Z.ai y usa Mis dispositivos para traer solo ese archivo a la carpeta de tu proyecto." },
+  { id: "hunyuan-link", service: "Tencent Hy (Hunyuan)", group: "Inteligencia artificial", subgroup: "China", description: "Asistente de Tencent con los modelos Hunyuan", icon: "bot", color: "blue", pack: "ai", domains: ["hy.tencent.ai"], mode: "Híbrida", defaultAccess: "private", appUrlPlaceholder: "https://hy.tencent.ai/…", appHelp: "Opcional. Pega un enlace https de Tencent Hy (Hunyuan): en el teléfono o la tableta el sistema puede abrir la app oficial si está instalada; si no, se abre el navegador.", publicLinkHelp: "Opcional. Pega el enlace de una conversación o de un recurso de Tencent Hy (Hunyuan). Quien tenga ese enlace puede verlo.", importHelp: "Descarga o copia el resultado desde Tencent Hy (Hunyuan) y usa Mis dispositivos para traer solo ese archivo a la carpeta de tu proyecto." },
+  { id: "wenxin-link", service: "Baidu Wenxin", group: "Inteligencia artificial", subgroup: "China", description: "Asistente de Baidu para buscar, escribir y crear", icon: "bot", color: "pink", pack: "ai", domains: ["wenxin.baidu.com", "chat.baidu.com"], mode: "Híbrida", defaultAccess: "private", appUrlPlaceholder: "https://wenxin.baidu.com/…", appHelp: "Opcional. Pega un enlace https de Baidu Wenxin: en el teléfono o la tableta el sistema puede abrir la app oficial si está instalada; si no, se abre el navegador.", publicLinkHelp: "Opcional. Pega el enlace de una conversación o de un recurso de Baidu Wenxin. Quien tenga ese enlace puede verlo.", importHelp: "Descarga o copia el resultado desde Baidu Wenxin y usa Mis dispositivos para traer solo ese archivo a la carpeta de tu proyecto." },
+  { id: "yuanbao-link", service: "Tencent Yuanbao", group: "Inteligencia artificial", subgroup: "China", description: "Asistente de Tencent con búsqueda y lectura de documentos", icon: "sparkles", color: "emerald", pack: "ai", domains: ["yuanbao.tencent.com"], mode: "Híbrida", defaultAccess: "private", appUrlPlaceholder: "https://yuanbao.tencent.com/…", appHelp: "Opcional. Pega un enlace https de Tencent Yuanbao: en el teléfono o la tableta el sistema puede abrir la app oficial si está instalada; si no, se abre el navegador.", publicLinkHelp: "Opcional. Pega el enlace de una conversación o de un recurso de Tencent Yuanbao. Quien tenga ese enlace puede verlo.", importHelp: "Descarga o copia el resultado desde Tencent Yuanbao y usa Mis dispositivos para traer solo ese archivo a la carpeta de tu proyecto." },
+  { id: "alice-link", service: "Alice AI", group: "Inteligencia artificial", subgroup: "Rusia", description: "Asistente de Yandex con texto e imágenes", icon: "bot", color: "amber", pack: "ai", domains: ["alice.yandex.ru"], mode: "Híbrida", defaultAccess: "private", appUrlPlaceholder: "https://alice.yandex.ru/…", appHelp: "Opcional. Pega un enlace https de Alice AI: en el teléfono o la tableta el sistema puede abrir la app oficial si está instalada; si no, se abre el navegador.", publicLinkHelp: "Opcional. Pega el enlace de una conversación o de un recurso de Alice AI. Quien tenga ese enlace puede verlo.", importHelp: "Descarga o copia el resultado desde Alice AI y usa Mis dispositivos para traer solo ese archivo a la carpeta de tu proyecto." },
+  { id: "yandex-aistudio-link", service: "Yandex AI Studio", group: "Inteligencia artificial", subgroup: "Rusia", description: "Modelos y agentes de Yandex en una sola plataforma", icon: "bot", color: "amber", pack: "ai", domains: ["aistudio.yandex.ru"], mode: "Híbrida", defaultAccess: "private", appUrlPlaceholder: "https://aistudio.yandex.ru/…", appHelp: "Opcional. Pega un enlace https de Yandex AI Studio: en el teléfono o la tableta el sistema puede abrir la app oficial si está instalada; si no, se abre el navegador.", publicLinkHelp: "Opcional. Pega el enlace de una conversación o de un recurso de Yandex AI Studio. Quien tenga ese enlace puede verlo.", importHelp: "Descarga o copia el resultado desde Yandex AI Studio y usa Mis dispositivos para traer solo ese archivo a la carpeta de tu proyecto." },
+
   // Almacenamiento
-  { id: "google-drive-link", service: "Google Drive", group: "Almacenamiento", description: "Archivos y carpetas compartidos", icon: "hard-drive", color: "blue", pack: "office", domains: ["drive.google.com", "docs.google.com"], mode: "Híbrida" },
+  { id: "google-drive-link", service: "Google Drive", group: "Almacenamiento", description: "Archivos y carpetas compartidos", icon: "hard-drive", color: "blue", pack: "office", domains: ["drive.google.com", "docs.google.com"], mode: "Híbrida", hasWebApp: true, webAppUrl: "https://drive.google.com/drive/my-drive", webAppStatus: "Oficial; Google puede bloquear el inicio de sesión dentro de navegadores embebidos", appHelp: "En Android o iOS, pega el enlace del archivo o carpeta de Drive para que el sistema pueda ofrecer la app instalada. En escritorio se abrirá la experiencia web oficial." },
   { id: "onedrive-link", service: "OneDrive", group: "Almacenamiento", description: "Archivos de Microsoft y vínculos compartidos", icon: "cloud", color: "blue", pack: "office", domains: ["onedrive.live.com", "1drv.ms", "sharepoint.com"], mode: "Híbrida" },
   { id: "yandex-disk-link", service: "Yandex Disk", group: "Almacenamiento", description: "Archivos y carpetas de Yandex Disk", icon: "hard-drive", color: "amber", pack: "office", domains: ["disk.yandex.ru", "disk.yandex.com", "yadi.sk"], mode: "Híbrida" },
   { id: "dropbox-link", service: "Dropbox", group: "Almacenamiento", description: "Archivos y carpetas en la nube", icon: "box", color: "blue", pack: "office", domains: ["dropbox.com", "db.tt"], mode: "Híbrida" },
@@ -102,7 +233,7 @@ const WEB_INTEGRATIONS = Object.freeze([
   { id: "mega-link", service: "MEGA", group: "Almacenamiento", description: "Archivos y carpetas compartidos con cifrado", icon: "cloud", color: "pink", pack: "office", domains: ["mega.nz"], mode: "Navegador" },
   { id: "pcloud-link", service: "pCloud", group: "Almacenamiento", description: "Archivos, carpetas y enlaces públicos", icon: "cloud", color: "blue", pack: "office", domains: ["pcloud.com", "my.pcloud.com", "e.pcloud.link"], mode: "Híbrida" },
   { id: "nextcloud-link", service: "Nextcloud", group: "Almacenamiento", description: "Nube privada o autohospedada", icon: "cloud-cog", color: "blue", pack: "office", domains: [], allowCustomDomain: true, mode: "Híbrida" },
-].map((item) => ({ ...item, name: item.service, ext: "md", category: "Integraciones", action: "web-link" })));
+].map((item) => ({ ...item, ...(INTEGRATION_ROUTES[item.id] || {}), name: item.service, ext: "md", category: "Integraciones", action: "web-link" })));
 
 const OFFICE_TEMPLATES = Object.freeze({
   docx: "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",
@@ -127,6 +258,7 @@ const FILE_TYPES = [
   { id: "event-note", name: "Evento / Calendario", description: "Agenda, participantes, logística y seguimiento", ext: "md", icon: "calendar-clock", category: "Plantillas", pack: "smart-notes", color: "pink", content: ({ title }) => smartNote("evento", title, `> [!info] Datos del evento\n> **Inicio:**  ·  **Fin:**  ·  **Zona horaria:**  ·  **Lugar / enlace:**  ·  **Estado:** Planeado\n\n## Objetivo\n\n## Participantes\n\n| Persona | Rol | Confirmación |\n|---|---|:---:|\n|  |  | ☐ |\n\n## Agenda\n\n| Hora | Actividad | Responsable |\n|---:|---|---|\n|  |  |  |\n\n## Preparación y logística\n\n- [ ] \n\n## Notas durante el evento\n\n## Seguimiento\n\n- [ ] Acción — **Responsable:**  — **Fecha:**`) },
   { id: "flashcard-note", name: "Flashcard", description: "Pregunta, respuesta, pista y repaso", ext: "md", icon: "layers-3", category: "Plantillas", pack: "academic", color: "emerald", content: ({ title }) => smartNote("flashcard", title, `> [!question] Pregunta\n> \n\n## Respuesta\n\n> [!success]- Mostrar respuesta\n> \n\n## Pista\n\n> [!hint]- Mostrar pista\n> \n\n## Explicación y contexto\n\n## Fuente\n\n- \n\n## Repaso\n\n| Fecha | Resultado | Próximo repaso |\n|---|---|---|\n| ${today()} | Nuevo |  |`) },
   { id: "reference-note", name: "Cita / Referencia", description: "Fuente, cita, contexto y comentario", ext: "md", icon: "quote", category: "Plantillas", pack: "academic", color: "violet", content: ({ title }) => smartNote("referencia", title, `> [!quote] Cita\n> “ ”\n\n## Fuente\n\n- **Autor:**\n- **Obra / publicación:**\n- **Año:**\n- **Página / ubicación:**\n- **URL / DOI / ISBN:**\n- **Consultado:** ${today()}\n\n## Contexto\n\n## Interpretación personal\n\n## Cómo podría usarla\n\n- \n\n## Referencia formateada\n\n> `) },
+  { id: "new-user-template", name: "Crear mi plantilla", description: "Escribe una plantilla propia y guárdala en tu carpeta de plantillas", ext: "md", icon: "file-plus-2", category: "Plantillas", subgroup: "Mis plantillas", pack: "essentials", color: "violet", action: "new-template" },
   { id: "text", name: "Texto", description: "Texto plano universal", ext: "txt", icon: "text", category: "Notas", color: "blue", viewer: true, content: () => "" },
   { id: "device-file", name: "Mis dispositivos", description: "Elige e importa un único archivo mediante el selector seguro del sistema", ext: "*", icon: "folder-open", category: "Office", pack: "essentials", color: "blue", action: "import-file" },
   { id: "open-pdf", name: "Centro PDF", description: "Busca, abre y continúa trabajando con un PDF de tu bóveda", ext: "pdf", icon: "file-search", category: "Notas", color: "orange", action: "open-pdf" },
@@ -165,7 +297,7 @@ const FILE_TYPES = [
   { id: "docx", name: "Documento · Docs", description: "Compatible con Microsoft Word, WPS y LibreOffice", ext: "docx", icon: "file-text", category: "Office", color: "blue", office: true },
   { id: "xlsx", name: "Hoja · Sheets", description: "Compatible con Microsoft Excel, WPS y LibreOffice", ext: "xlsx", icon: "sheet", category: "Office", color: "emerald", office: true },
   { id: "pptx", name: "Presentación · Slides", description: "Compatible con PowerPoint, WPS y LibreOffice", ext: "pptx", icon: "presentation", category: "Office", color: "orange", office: true },
-  { id: "univer", name: "Hoja Sheet Plus", description: "Libro editable dentro de Obsidian", ext: "univer", icon: "table-properties", category: "Office", color: "green", integration: ["sheet", "excel", "univer"] },
+  { id: "univer", name: "Hoja Sheet Plus", description: "Libro editable dentro de Obsidian", ext: "univer.md", icon: "table-properties", category: "Office", color: "green", pluginId: "sheet-plus", pluginName: "Sheet Plus", commandId: "sheet-plus:spreadsheet-autocreation" },
   { id: "excalidraw", name: "Dibujo Excalidraw", description: "Pizarra y diagramación con el complemento oficial", ext: "excalidraw.md", icon: "pen-tool", category: "Visual", color: "pink", pluginId: "obsidian-excalidraw-plugin", excalidraw: true },
 ];
 
@@ -206,21 +338,23 @@ function kindFor(type) {
 }
 
 const CATALOG_CATEGORIES = Object.freeze([
-  ["Inicio", "home"], ["Favoritos", "bookmark"], ["Notas", "notebook-pen"], ["Documentos", "files"],
+  ["Inicio", "home"], ["Favoritos", "bookmark"], ["Plantillas", "layout-template"], ["Apps de notas", "notebook-tabs"], ["Documentos", "files"],
   ["Datos y código", "code-2"], ["Diseño", "palette"], ["Multimedia", "play"],
-  ["PDF", "file-text"], ["Almacenamiento", "cloud"], ["Integraciones", "blocks"],
+  ["PDF", "file-text"], ["IA", "sparkles"], ["Almacenamiento", "cloud"], ["Integraciones", "blocks"],
 ]);
 
 function catalogCategory(type) {
   if (["open-pdf", "import-pdf", "pdf-notes", "pdf-tools"].includes(type.id)) return "PDF";
   if (type.action === "web-link") {
     if (type.group === "Almacenamiento") return "Almacenamiento";
+    if (type.group === "Inteligencia artificial") return "IA";
     if (type.group === "Multimedia") return "Multimedia";
-    if (type.group === "Notas y conocimiento") return "Notas";
+    if (type.group === "Notas y conocimiento") return "Apps de notas";
     if (type.group === "Oficina web") return "Documentos";
     return "Integraciones";
   }
-  if (type.category === "Plantillas" || type.category === "Notas") return "Notas";
+  if (type.category === "Plantillas") return "Plantillas";
+  if (type.category === "Notas") return "Documentos";
   if (type.category === "Office") return "Documentos";
   if (["Datos", "Código"].includes(type.category)) return "Datos y código";
   if (type.category === "Visual") return "Diseño";
@@ -232,8 +366,79 @@ function escapeHtml(value) {
   return String(value).replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" })[char]);
 }
 
+const WINDOWS_RESERVED = /^(con|prn|aux|nul|com[1-9]|lpt[1-9])$/i;
+
+function cleanSegment(value) {
+  let segment = String(value || "")
+    .replace(/[\u0000-\u001f\u007f]/g, "")
+    .replace(/[\\/:*?"<>|]/g, "-")
+    .replace(/\s+/g, " ")
+    .replace(/^[\s.]+|[\s.]+$/g, "");
+  if (WINDOWS_RESERVED.test(segment)) segment = `${segment}_`;
+  return segment;
+}
+
 function safeName(value) {
-  return value.trim().replace(/[\\/:*?"<>|]/g, "-").replace(/\s+/g, " ").slice(0, 120);
+  return cleanSegment(value).slice(0, 120);
+}
+
+// Extensiones que el sistema podría ejecutar. Pointix nunca las abre con la aplicación predeterminada.
+const RISKY_EXTENSIONS = new Set([
+  "exe", "com", "bat", "cmd", "msi", "msp", "scr", "pif", "lnk", "reg", "ps1", "psm1", "vbs", "vbe",
+  "js", "jse", "wsf", "wsh", "hta", "cpl", "jar", "sh", "bash", "zsh", "command", "app", "apk",
+  "appimage", "dmg", "pkg", "deb", "rpm", "bin", "run", "action", "desktop", "scf", "dll", "sys",
+]);
+
+function isRiskyName(name) {
+  const text = String(name || "");
+  const ext = text.includes(".") ? text.split(".").pop().toLowerCase() : "";
+  return RISKY_EXTENSIONS.has(ext);
+}
+
+// Enlace seguro para escribir dentro de Markdown: normalizado y sin caracteres que cierren o rompan el enlace.
+function mdSafeHref(href) {
+  return String(href || "").replace(/[()<>\s]/g, (char) => ({ "(": "%28", ")": "%29", "<": "%3C", ">": "%3E" })[char] || "%20");
+}
+
+function maxImportBytes() {
+  return (Platform.isMobile ? 100 : 500) * 1024 * 1024;
+}
+
+function maxImportLabel() {
+  return Platform.isMobile ? "100 MB en el teléfono o la tableta" : "500 MB";
+}
+
+function applyTemplateTokens(text, title) {
+  const now = new Date();
+  const hh = String(now.getHours()).padStart(2, "0");
+  const mm = String(now.getMinutes()).padStart(2, "0");
+  return String(text || "")
+    .replace(/^pointix-plantilla:.*\r?\n/m, "")
+    .replace(/^---\r?\n---\r?\n/, "")
+    .replace(/\{\{\s*(title|titulo|título)\s*\}\}/gi, () => String(title))
+    .replace(/\{\{\s*(date|fecha)\s*\}\}/gi, today())
+    .replace(/\{\{\s*(time|hora)\s*\}\}/gi, `${hh}:${mm}`);
+}
+
+const SHELL_TEXT_EXTS = ["json", "txt", "csv", "html", "css", "js", "ts", "xml", "yaml", "yml", "toml", "sql", "py", "sh", "bat", "mmd", "svg", "opml", "rtf", "drawio", "mm", "bib", "vcf", "ics", "ipynb"];
+const OPEN_ALIASES = Object.freeze({
+  docx: ["docx", "doc", "odt"], xlsx: ["xlsx", "xls", "ods"], pptx: ["pptx", "ppt", "odp"],
+  yaml: ["yaml", "yml"], html: ["html", "htm"], markdown: ["md", "markdown"], csv: ["csv", "tsv"], mermaid: ["mmd", "mermaid"],
+});
+const OPEN_NOUNS = Object.freeze({ docx: "documento", xlsx: "hoja de cálculo", pptx: "presentación", rtf: "documento", markdown: "nota", text: "texto" });
+const NATIVE_OPEN_EXTENSIONS = new Set(["md", "markdown", "canvas", "base", "pdf", "png", "jpg", "jpeg", "gif", "webp", "svg", "bmp", "avif", "mp3", "m4a", "wav", "ogg", "flac", "3gp", "webm", "mp4", "mkv", "mov"]);
+
+// Qué modalidades de «abrir» tiene sentido ofrecer en cada tipo. null = solo crear.
+function openModesFor(type) {
+  if (!type || type.action || type.integration || type.userTemplate || type.category === "Plantillas" || type.group) return null;
+  const exts = OPEN_ALIASES[type.id] || [type.ext];
+  const vaultOnly = Boolean(type.commandId || type.excalidraw || ["canvas", "base"].includes(type.id));
+  return { noun: OPEN_NOUNS[type.id] || "archivo", vault: exts, device: vaultOnly ? null : exts };
+}
+
+function matchesExtensions(file, extensions) {
+  const name = String(file?.name || "").toLowerCase();
+  return (extensions || []).some((ext) => name.endsWith(`.${ext}`));
 }
 
 function safeFolder(value) {
@@ -242,8 +447,11 @@ function safeFolder(value) {
   if (raw.startsWith("/") || /^[a-zA-Z]:/.test(raw)) throw new Error("absolute-path");
   const parts = raw.split("/").filter(Boolean);
   if (parts.some((part) => part === "." || part === "..")) throw new Error("path-traversal");
+  if (parts.some((part) => part.trim().startsWith("."))) throw new Error("hidden-folder");
   if (parts.length > 12 || raw.length > 200) throw new Error("path-limit");
-  return normalizePath(parts.join("/"));
+  const cleaned = parts.map(cleanSegment).filter(Boolean);
+  if (!cleaned.length) return "";
+  return normalizePath(cleaned.join("/"));
 }
 
 function domainMatches(hostname, domain) {
@@ -272,13 +480,48 @@ function validateIntegrationUrl(type, value) {
   return { ok: true, parsed, customDomain: !matchesService };
 }
 
-function validateAppUrl(value) {
+function validateAppUrl(value, type = null) {
   const raw = String(value || "").trim();
   if (!raw) return { ok: true, value: "" };
   let parsed;
   try { parsed = new URL(raw); } catch (error) { return { ok: false, message: "El enlace de aplicación no es válido." }; }
   if (["javascript:", "data:", "file:", "obsidian:"].includes(parsed.protocol)) return { ok: false, message: "Ese protocolo no se permite por seguridad." };
-  return { ok: true, value: raw };
+  const allowedProtocols = type?.appProtocols || ["http:", "https:"];
+  if (!allowedProtocols.includes(parsed.protocol)) {
+    return { ok: false, message: `El enlace para ${type?.service || "la aplicación"} debe usar ${allowedProtocols.join(" o ")}.` };
+  }
+  if (["http:", "https:"].includes(parsed.protocol) && type) {
+    const blockedLoginHosts = ["accounts.google.com", "myaccount.google.com", "mail.google.com", "login.microsoftonline.com", "login.live.com", "passport.yandex.com", "passport.yandex.ru"];
+    if (blockedLoginHosts.some((domain) => domainMatches(parsed.hostname, domain))) {
+      return { ok: false, message: "Ese enlace corresponde a una cuenta, correo o inicio de sesión; no identifica un recurso de la aplicación." };
+    }
+    const appDomains = type.appDomains || type.domains || [];
+    const matchesApp = appDomains.some((domain) => domainMatches(parsed.hostname, domain));
+    if (!matchesApp && !type.allowCustomDomain) {
+      return { ok: false, message: `El enlace de aplicación no parece pertenecer a ${type.service}.` };
+    }
+  }
+  if (parsed.protocol === "joplin:") {
+    const validAction = parsed.hostname === "x-callback-url" && ["/openNote", "/openFolder", "/openTag"].includes(parsed.pathname);
+    const id = parsed.searchParams.get("id") || "";
+    if (!validAction || !/^[a-f0-9]{32}$/i.test(id)) {
+      return { ok: false, message: "Pega un enlace externo completo copiado desde Joplin para una nota, cuaderno o etiqueta." };
+    }
+  }
+  if (parsed.protocol === "tg:") {
+    const action = (parsed.hostname || parsed.pathname || "").replace(/^\/+/, "");
+    if (!/^[a-z][a-z0-9_]*$/i.test(action) || raw.length > 2048) {
+      return { ok: false, message: "Pega un enlace profundo tg:// completo copiado desde Telegram." };
+    }
+  }
+  if (parsed.protocol === "nn:") {
+    const kind = (parsed.hostname || "").toLowerCase();
+    const identifier = parsed.pathname.replace(/^\/+/, "");
+    if (!["note", "notebook", "tag", "color"].includes(kind) || !identifier || identifier.length > 512) {
+      return { ok: false, message: "Pega un enlace nn:// completo para una nota, cuaderno, etiqueta o color de Notesnook." };
+    }
+  }
+  return { ok: true, value: parsed.href };
 }
 
 function yamlText(value) {
@@ -322,8 +565,21 @@ class PointixFileHubPlugin extends Plugin {
     this.settings = Object.assign({}, DEFAULT_SETTINGS, storedSettings);
     if (storedSettings.catalogVersion !== DEFAULT_SETTINGS.catalogVersion) {
       const enabled = new Set(this.settings.enabledPacks || []);
-      ["multimedia", "academic", "business"].forEach((id) => enabled.add(id));
+      ["multimedia", "academic", "business", "ai"].forEach((id) => enabled.add(id));
       this.settings.enabledPacks = PACKS.map((pack) => pack.id).filter((id) => enabled.has(id));
+      // La categoría «Notas» se reparte: plantillas, apps de notas y archivos básicos (Documentos).
+      const order = { ...(this.settings.categoryOrder || {}) };
+      if (Array.isArray(order.Notas)) {
+        order.Notas.forEach((id) => {
+          const type = FILE_TYPES.find((item) => item.id === id);
+          if (!type) return;
+          const target = catalogCategory(type);
+          order[target] = [...(order[target] || []).filter((existing) => existing !== id), id];
+        });
+        delete order.Notas;
+        this.settings.categoryOrder = order;
+      }
+      if (!this.settings.templatesFolder) this.settings.templatesFolder = DEFAULT_TEMPLATES_FOLDER;
       this.settings.catalogVersion = DEFAULT_SETTINGS.catalogVersion;
       await this.saveData(this.settings);
     }
@@ -333,14 +589,16 @@ class PointixFileHubPlugin extends Plugin {
     this.registerView(HUB_VIEW, (leaf) => new FileHubView(leaf, this));
     this.registerView(SHELL_VIEW, (leaf) => new FileShellView(leaf, this));
     this.registerObsidianProtocolHandler("pointix-open-web", async (params) => {
-      await this.openWebExternal(params?.url || "");
+      await this.openWebExternal(params?.url || "", params?.service || "");
     });
     this.registerObsidianProtocolHandler("pointix-open-app", async (params) => {
-      await this.openAppExternal(params?.url || "");
+      await this.openAppExternal(params?.url || "", params?.service || "");
     });
 
-    this.addRibbonIcon("files", "Abrir Pointix File Hub", () => this.openHub());
-    this.addCommand({ id: "open-file-hub", name: "Abrir selector de archivos", callback: () => this.openHub() });
+    addIcon("pointix-hub", POINTIX_ICON_SVG);
+    this._ribbonEl = this.addRibbonIcon("pointix-hub", "Abrir Pointix File Hub", () => this.openHub());
+    this.addCommand({ id: "open-file-hub", name: "Abrir centro de archivos", callback: () => this.openHub() });
+    this.addCommand({ id: "toggle-pin-hub", name: "Fijar o soltar la pestaña", callback: () => this.togglePinHub() });
     this.addCommand({ id: "create-from-file-hub", name: "Crear archivo…", callback: () => new CreateFileModal(this.app, this).open() });
     this.addCommand({ id: "open-pdf-from-file-hub", name: "Buscar y abrir PDF…", callback: () => new PdfPickerModal(this.app, this).open() });
 
@@ -352,12 +610,144 @@ class PointixFileHubPlugin extends Plugin {
         .onClick(() => this.openShell(file.path)));
     }));
 
+    const refreshTemplates = (file, oldPath) => {
+      const folder = this.templatesFolderPath();
+      if (!folder) return;
+      const inside = (p) => typeof p === "string" && p.startsWith(`${folder}/`);
+      if (!inside(file?.path) && !inside(oldPath)) return;
+      window.clearTimeout(this._templatesTimer);
+      this._templatesTimer = window.setTimeout(() => this.app.workspace.getLeavesOfType(HUB_VIEW).forEach((leaf) => leaf.view.render?.()), 300);
+    };
+    this.registerEvent(this.app.vault.on("create", (file) => refreshTemplates(file)));
+    this.registerEvent(this.app.vault.on("delete", (file) => refreshTemplates(file)));
+    this.registerEvent(this.app.vault.on("rename", (file, oldPath) => refreshTemplates(file, oldPath)));
+
+    this.app.workspace.onLayoutReady(() => { if (this.settings.openOnStartup) this.openHub(); });
+    this.setupChrome();
     this.addSettingTab(new PointixFileHubSettingTab(this.app, this));
   }
 
-  async onunload() {
-    this.app.workspace.detachLeavesOfType(HUB_VIEW);
-    this.app.workspace.detachLeavesOfType(SHELL_VIEW);
+  onunload() {
+    window.clearTimeout(this._templatesTimer);
+    this.teardownChrome();
+    // Las vistas registradas se cierran solas; no se separan hojas aquí para conservar su posición al actualizar.
+  }
+
+  async createUserTemplate(rawName, purpose) {
+    const folder = this.templatesFolderPath();
+    if (!folder) return null;
+    const name = safeName(rawName) || "Mi plantilla";
+    if (!this.app.vault.getAbstractFileByPath(folder)) await this.ensureFolder(folder);
+    const path = await this.uniquePath(folder, name, "md");
+    const description = String(purpose || "Plantilla propia").replace(/["\r\n]/g, " ").trim();
+    const body = `---\npointix-plantilla: "${description}"\n---\n\n# {{title}}\n\nCreada el {{date}} a las {{time}}.\n\n## \n\n- \n`;
+    const file = await this.app.vault.create(path, body);
+    new Notice(`Plantilla creada: ${file.path}`);
+    await this.app.workspace.getLeaf("tab").openFile(file);
+    return file;
+  }
+
+  // ---- Presencia de Pointix en la interfaz de Obsidian (pestaña nueva, barra de pestañas y barra lateral).
+  // Todo se hace con eventos oficiales y un mínimo de DOM; si Obsidian cambia esas pantallas, simplemente no se muestra.
+  setupChrome() {
+    const schedule = () => {
+      window.clearTimeout(this._chromeTimer);
+      this._chromeTimer = window.setTimeout(() => this.syncChrome(), 60);
+    };
+    this.registerEvent(this.app.workspace.on("layout-change", schedule));
+    this.registerEvent(this.app.workspace.on("active-leaf-change", schedule));
+    this.app.workspace.onLayoutReady(() => { this.moveRibbonFirst(); schedule(); });
+    this.register(() => this.teardownChrome());
+  }
+
+  syncChrome() {
+    try { this.syncStartEntries(); this.syncTabBarButton(); if (this.settings.pinHubTab) this.syncPinned(true); } catch (error) { console.debug("Pointix File Hub: interface sync skipped", error); }
+  }
+
+  teardownChrome() {
+    window.clearTimeout(this._chromeTimer);
+    document.querySelectorAll(".pfh-start-entry, .pfh-topbar-button").forEach((element) => element.remove());
+  }
+
+  moveRibbonFirst() {
+    const element = this._ribbonEl; const parent = element?.parentElement;
+    if (parent && parent.firstElementChild !== element) parent.prepend(element);
+  }
+
+  buildStartEntry() {
+    const entry = document.createElement("div");
+    entry.className = "pfh-start-entry";
+    entry.setAttribute("role", "button");
+    entry.setAttribute("aria-label", `Abrir ${START_TITLE}`);
+    entry.tabIndex = 0;
+    const tile = document.createElement("span"); tile.className = "pfh-start-icon"; setIcon(tile, "pointix-hub");
+    const copy = document.createElement("span"); copy.className = "pfh-start-copy";
+    const title = document.createElement("strong"); title.textContent = START_TITLE;
+    const hint = document.createElement("small"); hint.textContent = START_HINT;
+    copy.append(title, hint); entry.append(tile, copy);
+    entry.addEventListener("click", () => this.openHubFrom(entry));
+    entry.addEventListener("keydown", (event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); this.openHubFrom(entry); } });
+    return entry;
+  }
+
+  // Muestra el acceso encima de las opciones de la pestaña nueva.
+  syncStartEntries() {
+    const wanted = this.settings.showStartEntry !== false;
+    document.querySelectorAll(".pfh-start-entry").forEach((entry) => {
+      if (!wanted || !entry.nextElementSibling?.classList?.contains("empty-state-action-list")) entry.remove();
+    });
+    if (!wanted) return;
+    document.querySelectorAll(".empty-state-container").forEach((container) => {
+      const list = container.querySelector(":scope > .empty-state-action-list");
+      if (!list || container.querySelector(":scope > .pfh-start-entry")) return;
+      container.insertBefore(this.buildStartEntry(), list);
+    });
+  }
+
+  // Botón al inicio de la barra de pestañas (solo escritorio; en el teléfono queda la barra lateral).
+  syncTabBarButton() {
+    const strip = this.settings.showTabBarButton !== false && Platform.isDesktopApp && !Platform.isMobile ? document.querySelector(".mod-root .workspace-tab-header-container") : null;
+    document.querySelectorAll(".pfh-topbar-button").forEach((button) => { if (!strip || button.parentElement !== strip) button.remove(); });
+    if (!strip || strip.querySelector(":scope > .pfh-topbar-button")) return;
+    const inner = strip.querySelector(":scope > .workspace-tab-header-container-inner");
+    if (!inner) return;
+    const wrapper = document.createElement("div"); wrapper.className = "pfh-topbar-button";
+    const icon = document.createElement("span");
+    icon.className = "clickable-icon"; icon.setAttribute("role", "button"); icon.tabIndex = 0;
+    icon.setAttribute("aria-label", START_TITLE); setIcon(icon, "pointix-hub");
+    icon.addEventListener("click", () => this.openHub());
+    icon.addEventListener("keydown", (event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); this.openHub(); } });
+    wrapper.append(icon); strip.insertBefore(wrapper, inner);
+  }
+
+  // Desde una pestaña nueva: reutiliza la pestaña vacía en lugar de dejarla abierta.
+  async openHubFrom(entry) {
+    const workspace = this.app.workspace;
+    const empty = workspace.getLeavesOfType("empty").find((leaf) => leaf.view?.containerEl?.contains(entry));
+    const existing = workspace.getLeavesOfType(HUB_VIEW)[0];
+    if (existing) { workspace.revealLeaf(existing); empty?.detach(); return; }
+    if (empty) { await empty.setViewState({ type: HUB_VIEW, active: true }); this.applyPin(empty); workspace.revealLeaf(empty); return; }
+    await this.openHub();
+  }
+
+  // Fijar la pestaña del Hub (función oficial de Obsidian: queda al inicio de la barra de pestañas).
+  applyPin(leaf) {
+    if (this.settings.pinHubTab && typeof leaf?.setPinned === "function") leaf.setPinned(true);
+  }
+
+  syncPinned(value) {
+    this.app.workspace.getLeavesOfType(HUB_VIEW).forEach((leaf) => {
+      if (typeof leaf.setPinned === "function" && Boolean(leaf.pinned) !== Boolean(value)) leaf.setPinned(Boolean(value));
+    });
+  }
+
+  async togglePinHub() {
+    let leaf = this.app.workspace.getLeavesOfType(HUB_VIEW)[0];
+    if (!leaf) { await this.openHub(); leaf = this.app.workspace.getLeavesOfType(HUB_VIEW)[0]; }
+    if (!leaf || typeof leaf.setPinned !== "function") { new Notice("Esta versión de Obsidian no permite fijar pestañas desde aquí."); return; }
+    const next = !leaf.pinned;
+    leaf.setPinned(next);
+    new Notice(next ? "Pointix File Hub fijado." : "Pointix File Hub suelto.");
   }
 
   async openHub() {
@@ -366,6 +756,7 @@ class PointixFileHubPlugin extends Plugin {
       leaf = this.app.workspace.getLeaf("tab");
       await leaf.setViewState({ type: HUB_VIEW, active: true });
     }
+    this.applyPin(leaf);
     this.app.workspace.revealLeaf(leaf);
   }
 
@@ -385,10 +776,40 @@ class PointixFileHubPlugin extends Plugin {
     return enabled ? Array.from(enabled) : [];
   }
 
+  templatesFolderPath() {
+    try { return safeFolder(this.settings.templatesFolder || DEFAULT_TEMPLATES_FOLDER); } catch (error) { return ""; }
+  }
+
+  // Cada nota Markdown de la carpeta «Mis plantillas» aparece como una tarjeta.
+  userTemplateTypes() {
+    const folder = this.templatesFolderPath();
+    if (!folder) return [];
+    return this.app.vault.getMarkdownFiles()
+      .filter((file) => file.path.startsWith(`${folder}/`))
+      .sort((a, b) => a.path.localeCompare(b.path))
+      .map((file) => {
+        const meta = this.app.metadataCache?.getFileCache?.(file)?.frontmatter || {};
+        return {
+          id: `user-template:${file.path}`, name: file.basename, ext: "md", icon: "file-text", color: "violet",
+          description: String(meta["pointix-plantilla"] || meta.description || "Plantilla propia").slice(0, 110),
+          category: "Plantillas", subgroup: "Mis plantillas", pack: "essentials", userTemplate: file.path,
+        };
+      });
+  }
+
   enabledTypes() {
     const enabled = new Set(this.settings.enabledPacks || DEFAULT_SETTINGS.enabledPacks);
     const hidden = new Set(this.settings.hiddenIds || []);
-    return FILE_TYPES.filter((type) => enabled.has(packIdFor(type)) && !hidden.has(type.id));
+    return [...FILE_TYPES, ...this.userTemplateTypes()].filter((type) => enabled.has(packIdFor(type)) && !hidden.has(type.id));
+  }
+
+  // Abre un archivo de la bóveda con lo más adecuado: vista nativa, editor de Pointix o aplicación predeterminada.
+  async openVaultFile(file) {
+    if (!file) return;
+    const ext = String(file.extension || "").toLowerCase();
+    if (NATIVE_OPEN_EXTENSIONS.has(ext)) { await this.app.workspace.getLeaf("tab").openFile(file); return; }
+    if (SHELL_TEXT_EXTS.includes(ext)) { await this.openShell(file.path); return; }
+    await this.openExternal(file);
   }
 
   orderedTypes(types, section) {
@@ -429,6 +850,8 @@ class PointixFileHubPlugin extends Plugin {
   }
 
   availability(type) {
+    if (type.action === "new-template") return { state: "ready", label: "Tu propia plantilla" };
+    if (type.userTemplate) return { state: "ready", label: "Mi plantilla" };
     if (type.action === "import-file") return { state: "ready", label: "Selector del sistema" };
     if (type.action === "import-pdf") return { state: "ready", label: "Importación de un archivo" };
     if (type.action === "companion") return { state: "ready", label: "Nota compañera" };
@@ -455,6 +878,10 @@ class PointixFileHubPlugin extends Plugin {
   }
 
   async beginCreate(type) {
+    if (type.action === "new-template") {
+      new NewTemplateModal(this.app, this).open();
+      return;
+    }
     if (type.action === "import-file") {
       new ExternalFileImportModal(this.app, this).open();
       return;
@@ -508,6 +935,11 @@ class PointixFileHubPlugin extends Plugin {
     let file;
     try {
       if (folder && !this.app.vault.getAbstractFileByPath(folder)) await this.ensureFolder(folder);
+      if (type.commandId) {
+        const created = await this.createViaCommand(type, name, folder);
+        if (created) this.remember(type.id);
+        return created;
+      }
       if (type.excalidraw) {
         file = await this.createExcalidraw(name, folder);
         if (!file) return null;
@@ -520,6 +952,10 @@ class PointixFileHubPlugin extends Plugin {
         const encoded = OFFICE_TEMPLATES[type.ext];
         if (!encoded) throw new Error(`missing-internal-template-${type.ext}`);
         file = await this.app.vault.createBinary(path, base64ToArrayBuffer(encoded));
+      } else if (type.userTemplate) {
+        const source = this.app.vault.getAbstractFileByPath(type.userTemplate);
+        const raw = source ? await this.app.vault.read(source) : "";
+        file = await this.app.vault.create(path, applyTemplateTokens(raw, name));
       } else {
         const content = type.content ? type.content({ title: name }) : "";
         file = await this.app.vault.create(path, content);
@@ -535,6 +971,48 @@ class PointixFileHubPlugin extends Plugin {
     } finally {
       this.creationLocks.delete(lockKey);
     }
+  }
+
+  // Ejecuta el comando exacto de otro complemento y coloca SOLO el archivo recién creado donde el usuario eligió.
+  async createViaCommand(type, name, folder) {
+    const command = this.app.commands?.commands?.[type.commandId];
+    if (!command) {
+      new Notice(`Activa ${type.pluginName || "el complemento"} para crear este archivo.`);
+      return null;
+    }
+    const created = await new Promise((resolve) => {
+      let finished = false;
+      let timer = 0;
+      let ref = null;
+      const finish = (value) => {
+        if (finished) return;
+        finished = true;
+        if (ref) this.app.vault.offref(ref);
+        window.clearTimeout(timer);
+        resolve(value);
+      };
+      ref = this.app.vault.on("create", (file) => {
+        if (file instanceof TFile && file.name.toLowerCase().endsWith(`.${type.ext}`)) finish(file);
+      });
+      timer = window.setTimeout(() => finish(null), 8000);
+      try { this.app.commands.executeCommandById(type.commandId); } catch (error) {
+        console.error("Pointix File Hub: plugin command failed", error);
+        finish(null);      }
+    });
+    if (!created) {
+      new Notice(`No se detectó el archivo creado por ${type.pluginName || "el complemento"}. No se movió nada; revisa la carpeta raíz de la bóveda.`);
+      return null;
+    }
+    const target = await this.uniquePath(folder, name, type.ext);
+    if (created.path !== target) {
+      try { await this.app.fileManager.renameFile(created, target); } catch (error) {
+        console.error("Pointix File Hub: could not place created file", error);
+        new Notice(`El archivo se creó en ${created.path}, pero no se pudo moverlo a la carpeta elegida.`);
+        return created;
+      }
+    }
+    new Notice(`${type.name} creado: ${created.path}`);
+    return created;
   }
 
   async createExcalidraw(name, folder) {
@@ -601,6 +1079,10 @@ class PointixFileHubPlugin extends Plugin {
   }
 
   async openExternal(file) {
+    if (isRiskyName(file?.name)) {
+      new Notice("Por seguridad, Pointix no abre programas ni scripts con la aplicación del sistema. Si confías en el archivo, ábrelo desde tu gestor de archivos.");
+      return;
+    }
     try {
       if (navigator.canShare && typeof this.app.vault.readBinary === "function") {
         const data = await this.app.vault.readBinary(file);
@@ -629,20 +1111,30 @@ class PointixFileHubPlugin extends Plugin {
 
   async openSelectedFile(source) {
     if (!source) return;
+    const risky = isRiskyName(source.name);
     try {
+      if (!risky && Platform.isDesktopApp && typeof window !== "undefined" && window.require) {
+        const { shell, webUtils } = window.require("electron");
+        const nativePath = webUtils?.getPathForFile?.(source) || source.path || "";
+        if (nativePath) {
+          const result = await shell.openPath(nativePath);
+          if (!result) return;
+          console.warn("Pointix File Hub: default app did not open selected file", result);
+        }
+      }
+      if (PreviewExternalFileModal.supports(source)) {
+        new PreviewExternalFileModal(this.app, source).open();
+        return;
+      }
+      if (risky) {
+        new Notice("Por seguridad, Pointix no abre programas ni scripts con la aplicación del sistema. Puedes importar una copia a la bóveda o abrirla desde tu gestor de archivos.");
+        return;
+      }
       if (navigator.canShare?.({ files: [source] })) {
         await navigator.share({ files: [source], title: source.name });
         return;
       }
-      if (source.path && typeof window !== "undefined" && window.require) {
-        const { shell } = window.require("electron");
-        await shell.openPath(source.path);
-        return;
-      }
-      const url = URL.createObjectURL(source);
-      window.open(url, "_blank", "noopener,noreferrer");
-      window.setTimeout(() => URL.revokeObjectURL(url), 60000);
-      new Notice("El archivo se abrió temporalmente. Para conservar un enlace estable, impórtalo a la bóveda.");
+      new Notice("Este formato no tiene vista temporal en el dispositivo. Puedes abrirlo desde el gestor de archivos o importar una copia a la bóveda.");
     } catch (error) {
       if (error?.name !== "AbortError") {
         console.error("Pointix File Hub: selected file open failed", error);
@@ -653,7 +1145,7 @@ class PointixFileHubPlugin extends Plugin {
 
   async importBrowserFile(source, rawFolder, allowedExtensions = null) {
     if (!source) throw new Error("missing-source");
-    if (source.size > 500 * 1024 * 1024) throw new Error("file-too-large");
+    if (source.size > maxImportBytes()) throw new Error("file-too-large");
     const lastDot = source.name.lastIndexOf(".");
     const rawBase = lastDot > 0 ? source.name.slice(0, lastDot) : source.name;
     const rawExt = lastDot > 0 ? source.name.slice(lastDot + 1) : "bin";
@@ -665,46 +1157,73 @@ class PointixFileHubPlugin extends Plugin {
     return this.app.vault.createBinary(path, await source.arrayBuffer());
   }
 
-  async openWebExternal(value) {
+  async launchExternal(href) {
+    if (Platform.isDesktopApp && typeof window !== "undefined" && window.require) {
+      const { shell } = window.require("electron");
+      await shell.openExternal(href);
+      return;
+    }
+    window.open(href, "_blank", "noopener,noreferrer");
+  }
+
+  async openWebExternal(value, serviceId = "") {
     let parsed;
-    try { parsed = new URL(String(value || "")); } catch (error) {
+    try { parsed = new URL(String(value || "").trim()); } catch (error) {
       new Notice("El enlace de la integración no es válido.");
       return;
     }
-    if (!['http:', 'https:'].includes(parsed.protocol)) {
+    if (!["http:", "https:"].includes(parsed.protocol)) {
       new Notice("Pointix solo abre enlaces web http o https.");
       return;
     }
+    if (serviceId) {
+      const type = WEB_INTEGRATIONS.find((item) => item.id === serviceId);
+      const check = type ? validateIntegrationUrl(type, parsed.href) : { ok: false, message: "Servicio no reconocido." };
+      if (!check.ok) { new Notice(check.message); return; }
+    }
     try {
-      if (typeof window !== "undefined" && window.require) {
-        const { shell } = window.require("electron");
-        await shell.openExternal(parsed.href);
-        return;
-      }
-      window.open(parsed.href, "_blank", "noopener,noreferrer");
+      await this.launchExternal(parsed.href);
     } catch (error) {
       console.error("Pointix File Hub: web open failed", error);
       new Notice("No fue posible abrir el navegador. Copia el enlace desde la nota de integración.");
     }
   }
 
-  async openAppExternal(value) {
-    const raw = String(value || "").trim();
+  // Solo se abren enlaces que un servicio del catálogo declara como suyos. Los protocolos que no son https piden confirmación.
+  resolveAppLink(value, serviceId = "") {
     let parsed;
-    try { parsed = new URL(raw); } catch (error) { new Notice("El enlace para la aplicación no es válido."); return; }
-    const blocked = ["javascript:", "data:", "file:", "obsidian:"];
-    if (blocked.includes(parsed.protocol)) { new Notice("Ese tipo de enlace no está permitido."); return; }
-    try {
-      if (typeof window !== "undefined" && window.require) {
-        const { shell } = window.require("electron");
-        await shell.openExternal(raw);
-        return;
-      }
-      window.open(raw, "_blank", "noopener,noreferrer");
-    } catch (error) {
-      console.error("Pointix File Hub: app link failed", error);
-      new Notice("No se encontró una aplicación compatible. Usa el enlace web de la ficha.");
+    try { parsed = new URL(String(value || "").trim()); } catch (error) {
+      return { ok: false, message: "El enlace para la aplicación no es válido." };
     }
+    const known = serviceId ? WEB_INTEGRATIONS.find((item) => item.id === serviceId) : null;
+    if (serviceId && !known) return { ok: false, message: "Servicio no reconocido; no se abrió el enlace." };
+    const candidates = known ? [known] : WEB_INTEGRATIONS.filter((item) => (item.appProtocols || ["http:", "https:"]).includes(parsed.protocol));
+    for (const type of candidates) {
+      const check = validateAppUrl(parsed.href, type);
+      if (check.ok && check.value) return { ok: true, parsed: new URL(check.value), type };
+    }
+    return { ok: false, message: "Pointix no reconoce este enlace de aplicación, así que no lo abrió por seguridad." };
+  }
+
+  async openAppExternal(value, serviceId = "") {
+    const resolved = this.resolveAppLink(value, serviceId);
+    if (!resolved.ok) { new Notice(resolved.message); return; }
+    const { parsed, type } = resolved;
+    const open = async () => {
+      try {
+        await this.launchExternal(parsed.href);
+      } catch (error) {
+        console.error("Pointix File Hub: app link failed", error);
+        new Notice("No se encontró una aplicación compatible. Usa el enlace web de la ficha.");
+      }
+    };
+    if (parsed.protocol === "https:") { await open(); return; }
+    new ConfirmOpenModal(this.app, {
+      title: `Abrir ${type.service}`,
+      message: `Este enlace abrirá la aplicación instalada de ${type.service} en este dispositivo. Ábrelo solo si lo copiaste tú desde ${type.service}.`,
+      url: parsed.href,
+      confirmText: "Abrir aplicación",
+    }, open).open();
   }
 
   revealFile(file) {
@@ -801,7 +1320,7 @@ class FileHubView extends ItemView {
 
   getViewType() { return HUB_VIEW; }
   getDisplayText() { return "Pointix File Hub"; }
-  getIcon() { return "files"; }
+  getIcon() { return "pointix-hub"; }
   async onOpen() { this.render(); }
 
   render() {
@@ -812,9 +1331,9 @@ class FileHubView extends ItemView {
     root.toggleClass("is-list-view", this.plugin.settings.mobileView !== "grid");
     const hero = root.createDiv("pfh-hero");
     const heroText = hero.createDiv("pfh-hero-text");
-    heroText.createEl("div", { cls: "pfh-eyebrow", text: "POINTIX WORKSPACE" });
-    heroText.createEl("h1", { text: "Crea, conecta y encuentra todo." });
-    heroText.createEl("p", { text: "Notas, documentos, herramientas y servicios reunidos en tu espacio de trabajo." });
+    heroText.createEl("div", { cls: "pfh-eyebrow", text: HERO_EYEBROW });
+    heroText.createEl("h1", { text: HERO_TITLE });
+    heroText.createEl("p", { text: HERO_TEXT });
     const quick = hero.createEl("button", { cls: "mod-cta pfh-quick", text: "Crear archivo" });
     quick.prepend(createIcon("plus"));
     quick.addEventListener("click", () => new CreateFileModal(this.app, this.plugin).open());
@@ -823,13 +1342,17 @@ class FileHubView extends ItemView {
     const searchWrap = tools.createDiv("pfh-search");
     searchWrap.append(createIcon("search"));
     const search = searchWrap.createEl("input", { attr: { type: "search", placeholder: "Buscar un tipo de archivo…", "aria-label": "Buscar tipo de archivo" } });
+    root.createDiv({ cls: "pfh-sr-only", attr: { role: "status", "aria-live": "polite" } });
     search.value = this.query;
     search.addEventListener("input", () => { this.query = search.value.toLowerCase(); this.renderGrid(root); });
 
     const chips = tools.createDiv("pfh-chips");
     CATALOG_CATEGORIES.forEach(([category, iconName]) => {
       const chip = chips.createEl("button", { cls: this.category === category ? "is-active" : "" });
-      chip.append(createIcon(iconName)); chip.appendText(category);
+      chip.append(createIcon(iconName));
+      chip.createSpan({ cls: "pfh-chip-label", text: category });
+      chip.setAttribute("aria-label", category); chip.setAttribute("title", category);
+      chip.setAttribute("aria-pressed", this.category === category ? "true" : "false");
       chip.addEventListener("click", () => { this.category = category; this.render(); });
     });
 
@@ -868,13 +1391,17 @@ class FileHubView extends ItemView {
         copy.createEl("small", { text: `${enabledTypes.filter((type) => catalogCategory(type) === name).length} opciones` });
         button.addEventListener("click", () => { this.category = name; this.render(); });
       });
-    } else if (!this.query && ["Integraciones", "Almacenamiento"].includes(this.category)) {
-      const groups = [...new Set(all.map((type) => type.group || "Complementos y capacidades"))];
-      groups.forEach((group) => this.renderSection(content, group, "layout-grid", all.filter((type) => (type.group || "Complementos y capacidades") === group), this.category));
+    } else if (!this.query && ["Integraciones", "Almacenamiento", "IA", "Plantillas", "Documentos", "Datos y código", "Diseño"].includes(this.category)) {
+      const groupOf = (type) => type.subgroup || SUBGROUP_BY_ID[type.id] || (type.category === "Plantillas" ? "Plantillas predeterminadas" : null) || type.group
+        || (["Documentos", "Datos y código", "Diseño"].includes(this.category) ? "Otros formatos" : "Complementos y capacidades");
+      const groups = [...new Set(all.map(groupOf))];
+      groups.forEach((group) => this.renderSection(content, group, "layout-grid", all.filter((type) => groupOf(type) === group), this.category));
     } else {
       this.renderSection(content, this.query ? "Resultados" : this.category, "layout-grid", all, this.category);
     }
     if (!all.length) content.createDiv({ cls: "pfh-empty", text: "No encontramos ese formato." });
+    const live = root.querySelector(".pfh-sr-only");
+    if (live) live.setText(this.query ? `${all.length} resultados` : "");
   }
 
   renderSection(parent, title, icon, types, sectionKey = title) {
@@ -907,7 +1434,7 @@ class FileHubView extends ItemView {
     card.createEl("p", { text: type.description });
     const footer = card.createDiv("pfh-card-footer");
     footer.createSpan({ cls: `pfh-status is-${availability.state}`, text: availability.label });
-    footer.createSpan({ cls: "pfh-extension", text: type.action === "open-pdf" ? "Buscar y abrir" : type.action === "import-pdf" ? "Elegir del equipo" : type.action === "companion" ? "Enlazar archivo" : type.action === "web-link" ? type.mode : `.${type.ext}` });
+    footer.createSpan({ cls: "pfh-extension", text: type.action === "open-pdf" ? "Buscar y abrir" : type.action === "import-pdf" ? "Elegir del equipo" : type.action === "companion" ? "Enlazar archivo" : type.action === "web-link" ? type.mode : type.action === "new-template" ? "Nueva plantilla" : type.userTemplate ? "Mi plantilla" : `.${type.ext}` });
     const activate = () => this.plugin.beginCreate(type);
     let timer = null; let held = false; let pressX = 0; let pressY = 0;
     card.addEventListener("pointerdown", (event) => {
@@ -925,7 +1452,7 @@ class FileHubView extends ItemView {
     });
     card.addEventListener("contextmenu", (event) => { event.preventDefault(); new CardActionsModal(this.app, this.plugin, type, personalizationSection).open(); });
     card.addEventListener("click", (event) => { if (held) { event.preventDefault(); held = false; return; } activate(); });
-    card.addEventListener("keydown", (event) => { if (event.key === "Enter" || event.key === " ") activate(); });
+    card.addEventListener("keydown", (event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); activate(); } });
     card.addEventListener("dragstart", (event) => { this.draggedId = type.id; event.dataTransfer.effectAllowed = "move"; card.addClass("is-dragging"); });
     card.addEventListener("dragend", () => { this.draggedId = null; card.removeClass("is-dragging"); });
     card.addEventListener("dragover", (event) => { event.preventDefault(); card.addClass("is-drop-target"); });
@@ -953,7 +1480,7 @@ class FileShellView extends ItemView {
       root.createDiv({ cls: "pfh-empty", text: "El archivo ya no está disponible." });
       return;
     }
-    if (["json", "txt", "csv", "html", "css", "js", "ts", "xml", "yaml", "yml", "toml", "sql", "py", "sh", "bat", "mmd", "svg", "opml", "rtf", "drawio", "mm", "bib", "vcf", "ics", "ipynb"].includes(file.extension.toLowerCase())) {
+    if (SHELL_TEXT_EXTS.includes(file.extension.toLowerCase())) {
       await this.renderTextEditor(root, file);
       return;
     }
@@ -1099,7 +1626,7 @@ class CompanionPickerModal extends Modal {
         await this.plugin.createCompanionNote(file, this.type.mediaKind, folder);
       } catch (error) {
         console.error("Pointix File Hub: companion import failed", error);
-        new Notice(error?.message === "file-too-large" ? "El archivo supera el límite seguro de 500 MB." : "No se pudo importar ese archivo. No se examinó ni copió su carpeta.");
+        new Notice(error?.message === "file-too-large" ? `El archivo supera el límite seguro de ${maxImportLabel()}.` : "No se pudo importar ese archivo. No se examinó ni copió su carpeta.");
         importAction.disabled = false;
       }
     });
@@ -1212,7 +1739,7 @@ class ExternalFileImportModal extends Modal {
     const folderField = addVaultFolderField(contentEl, this.app, this.plugin.settings.defaultFolder, "Importar en");
     const actions = contentEl.createDiv("pfh-modal-actions");
     actions.createEl("button", { text: "Cancelar" }).addEventListener("click", () => this.close());
-    const openButton = actions.createEl("button", { text: "Abrir / compartir sin importar" }); openButton.disabled = true;
+    const openButton = actions.createEl("button", { text: "Ver / abrir sin importar" }); openButton.disabled = true;
     const importButton = actions.createEl("button", { cls: "mod-cta", text: "Importar una copia" }); importButton.disabled = true;
     chooser.addEventListener("change", () => {
       this.selectedFile = chooser.files?.[0] || null;
@@ -1222,7 +1749,7 @@ class ExternalFileImportModal extends Modal {
     });
     importButton.addEventListener("click", async () => {
       const source = this.selectedFile; if (!source || importButton.disabled) return;
-      if (source.size > 500 * 1024 * 1024) { new Notice("El archivo supera el límite seguro de 500 MB."); return; }
+      if (source.size > maxImportBytes()) { new Notice(`El archivo supera el límite seguro de ${maxImportLabel()}.`); return; }
       importButton.disabled = true;
       try {
         const file = await this.plugin.importBrowserFile(source, folderField.getValue());
@@ -1238,6 +1765,55 @@ class ExternalFileImportModal extends Modal {
   onClose() { this.selectedFile = null; this.contentEl.empty(); }
 }
 
+class PreviewExternalFileModal extends Modal {
+  constructor(app, source) { super(app); this.source = source; this.objectUrl = ""; }
+  static extension(source) {
+    const name = String(source?.name || "");
+    return name.includes(".") ? name.split(".").pop().toLowerCase() : "";
+  }
+  static supports(source) {
+    const extension = this.extension(source);
+    const mime = String(source?.type || "").toLowerCase();
+    return mime.startsWith("image/") || mime.startsWith("audio/") || mime.startsWith("video/")
+      || mime === "application/pdf" || ["pdf", "png", "jpg", "jpeg", "gif", "webp", "svg", "mp3", "m4a", "wav", "ogg", "mp4", "webm", "txt", "md", "csv", "json", "xml", "yaml", "yml", "toml", "sql", "js", "ts", "css", "html"].includes(extension);
+  }
+  async onOpen() {
+    this.modalEl.addClass("pfh-modal", "pfh-external-preview-modal");
+    const { contentEl } = this;
+    contentEl.createEl("h2", { text: this.source.name });
+    contentEl.createEl("p", { text: "Vista temporal: el archivo permanece en su ubicación original y no se copia a la bóveda." });
+    const extension = PreviewExternalFileModal.extension(this.source);
+    const mime = String(this.source.type || "").toLowerCase();
+    const preview = contentEl.createDiv("pfh-external-preview");
+    if (mime.startsWith("image/") || ["png", "jpg", "jpeg", "gif", "webp", "svg"].includes(extension)) {
+      this.objectUrl = URL.createObjectURL(this.source);
+      preview.createEl("img", { attr: { src: this.objectUrl, alt: this.source.name } });
+    } else if (mime.startsWith("audio/") || ["mp3", "m4a", "wav", "ogg"].includes(extension)) {
+      this.objectUrl = URL.createObjectURL(this.source);
+      preview.createEl("audio", { attr: { src: this.objectUrl, controls: "", preload: "metadata" } });
+    } else if (mime.startsWith("video/") || ["mp4", "webm"].includes(extension)) {
+      this.objectUrl = URL.createObjectURL(this.source);
+      preview.createEl("video", { attr: { src: this.objectUrl, controls: "", preload: "metadata" } });
+    } else if (mime === "application/pdf" || extension === "pdf") {
+      this.objectUrl = URL.createObjectURL(this.source);
+      preview.createEl("iframe", { attr: { src: this.objectUrl, title: `Vista de ${this.source.name}` } });
+    } else {
+      if (this.source.size > 5 * 1024 * 1024) {
+        preview.createDiv({ cls: "pfh-empty", text: "El archivo de texto supera el límite de vista temporal de 5 MB." });
+        return;
+      }
+      const text = await this.source.text();
+      preview.createEl("pre", { text });
+    }
+  }
+  onClose() {
+    if (this.objectUrl) URL.revokeObjectURL(this.objectUrl);
+    this.objectUrl = "";
+    this.source = null;
+    this.contentEl.empty();
+  }
+}
+
 class WebLinkModal extends Modal {
   constructor(app, plugin, type) { super(app); this.plugin = plugin; this.type = type; }
   onOpen() {
@@ -1247,22 +1823,51 @@ class WebLinkModal extends Modal {
     contentEl.createEl("p", { text: "Pointix guardará una ficha Markdown con acceso, contexto, estado y recuperación. El servicio continúa alojando y controlando el contenido original." });
     const compatibility = contentEl.createDiv("pfh-integration-guidance");
     compatibility.createEl("strong", { text: this.type.mode });
-    compatibility.createEl("span", { text: this.type.mode === "Vista pública" ? " Comparte el recurso para visualizarlo; la edición y el inicio de sesión se realizan en el navegador." : " Pointix conservará el enlace y ofrecerá apertura externa cuando el servicio bloquee la vista o el inicio de sesión dentro de Obsidian." });
+    compatibility.createEl("span", { text: this.type.hasWebApp === false ? ` ${this.type.service} se conecta mediante la aplicación instalada; Pointix no mostrará una sesión web inexistente.` : " Puedes enlazar un recurso público, entrar a la aplicación web cuando esté verificada o abrir la aplicación instalada mediante un enlace oficial." });
     let name = `Proyecto ${this.type.service}`;
     let url = "";
     let appUrl = "";
-    let access = "public-view";
+    let customWebAppUrl = "";
+    let access = this.type.defaultAccess || "public-view";
     let purpose = "";
+    let notesOnly = false;
     new Setting(contentEl).setName("Nombre").addText((text) => text.setValue(name).onChange((value) => { name = value; }));
-    new Setting(contentEl).setName("Enlace directo").setDesc("Copia el enlace del recurso, no la página de acceso ni el inicio del servicio.").addText((text) => text.setPlaceholder(this.type.domains?.[0] ? `https://${this.type.domains[0]}/…` : "https://…").onChange((value) => { url = value.trim(); }));
-    new Setting(contentEl).setName(`Enlace para abrir en ${this.type.service}`).setDesc("Opcional: pega un enlace universal o profundo de la aplicación. Si queda vacío, se intentará abrir el enlace web con una app compatible.").addText((text) => text.setPlaceholder("https://… o app://…").onChange((value) => { appUrl = value.trim(); }));
-    new Setting(contentEl).setName("Acceso declarado").setDesc("Pointix lo documenta, pero no modifica los permisos del servicio.").addDropdown((dropdown) => dropdown
-      .addOption("public-view", "Público para visualizar")
-      .addOption("public-edit", "Público para editar")
-      .addOption("private", "Privado / requiere cuenta")
-      .setValue(access)
-      .onChange((value) => { access = value; }));
+    new Setting(contentEl).setName("Enlace público de la nota o recurso").setDesc(this.type.publicLinkHelp || "Opcional. Pega un enlace http/https compartido para visualizar o editar; no pegues la página general del servicio.").addText((text) => text.setPlaceholder(this.type.domains?.[0] ? `https://${this.type.domains[0]}/…` : "https://…").onChange((value) => { url = value.trim(); }));
+    new Setting(contentEl).setName(`Abrir en la aplicación ${this.type.service}`).setDesc(this.type.appHelp || "Opcional. Pega un enlace universal o profundo oficial de la aplicación.").addText((text) => text.setPlaceholder(this.type.appUrlPlaceholder || "https://…").onChange((value) => { appUrl = value.trim(); }));
+    if (this.type.webAppUserProvided) {
+      new Setting(contentEl)
+        .setName(`Aplicación web / servidor de ${this.type.service}`)
+        .setDesc(this.type.webAppStatus || "Escribe la dirección HTTPS de tu organización o servidor.")
+        .addText((text) => text.setPlaceholder(this.type.webAppPlaceholder || "https://…").onChange((value) => { customWebAppUrl = value.trim(); }));
+    }
+    const routeInfo = contentEl.createDiv("pfh-integration-guidance");
+    if (this.type.hasWebApp === false) {
+      routeInfo.createEl("strong", { text: "Aplicación instalada" });
+      routeInfo.createEl("span", { text: ` ${this.type.service} no dispone de una sesión web verificada para este flujo. Copia su enlace externo oficial; el sistema intentará abrir la aplicación instalada.` });
+    } else if (this.type.webAppUrl) {
+      routeInfo.createEl("strong", { text: "Aplicación web disponible" });
+      routeInfo.createEl("span", { text: ` La ficha incluirá un enlace a la aplicación web de ${this.type.service}. Según tu configuración de Obsidian se abre en el navegador o en un visor integrado, y algunos servicios bloquean los visores integrados. ${this.type.webAppStatus ? `${this.type.webAppStatus}. ` : ""}Pointix no solicita ni conserva credenciales.` });
+    } else if (this.type.webAppUserProvided) {
+      routeInfo.createEl("strong", { text: "Dirección de organización requerida" });
+      routeInfo.createEl("span", { text: ` ${this.type.webAppStatus}. Pointix guardará la dirección en la ficha, pero nunca solicitará ni conservará credenciales.` });
+    } else {
+      routeInfo.createEl("strong", { text: "Compatibilidad por verificar" });
+      routeInfo.createEl("span", { text: " Pointix solo mostrará las rutas confirmadas para este servicio; no inventará accesos a una aplicación web." });
+    }
+    const accessChoices = {
+      "public-view": "Público para visualizar",
+      "public-edit": "Público para editar",
+      private: "Privado / requiere cuenta",
+    };
+    new Setting(contentEl).setName("Acceso declarado").setDesc("Pointix lo documenta, pero no modifica los permisos del servicio.").addDropdown((dropdown) => {
+      (this.type.accessOptions || Object.keys(accessChoices)).forEach((key) => dropdown.addOption(key, accessChoices[key]));
+      return dropdown.setValue(access).onChange((value) => { access = value; });
+    });
     new Setting(contentEl).setName("Propósito").setDesc("Opcional: explica por qué este recurso está conectado a tu bóveda.").addText((text) => text.setPlaceholder("Proyecto, reunión, seguimiento…").onChange((value) => { purpose = value.trim(); }));
+    new Setting(contentEl)
+      .setName("Solo notas")
+      .setDesc("Crea la ficha para anotar y relacionar tu trabajo sin guardar ningún enlace de este servicio.")
+      .addToggle((toggle) => toggle.setValue(false).onChange((value) => { notesOnly = value; }));
     const folderField = addVaultFolderField(contentEl, this.app, this.plugin.settings.defaultFolder, "Guardar ficha en");
     if (this.type.importHelp) {
       const migration = contentEl.createDiv("pfh-integration-guidance");
@@ -1274,10 +1879,23 @@ class WebLinkModal extends Modal {
     const create = buttons.createEl("button", { cls: "mod-cta", text: "Guardar integración" });
     cancel.addEventListener("click", () => this.close());
     create.addEventListener("click", async () => {
-      const validation = validateIntegrationUrl(this.type, url);
+      let resolvedWebAppUrl = notesOnly ? "" : (this.type.webAppUrl || "");
+      if (customWebAppUrl && !notesOnly) {
+        try {
+          const parsed = new URL(customWebAppUrl);
+          if (parsed.protocol !== "https:" && parsed.protocol !== "http:") throw new Error("protocol");
+          resolvedWebAppUrl = parsed.toString();
+        } catch (_) { new Notice("La dirección de la aplicación web debe comenzar con https:// o http://."); return; }
+      }
+      const typedUrl = notesOnly ? "" : url;
+      if (!notesOnly && !typedUrl && !appUrl && !resolvedWebAppUrl) { new Notice("Agrega un enlace, o activa «Solo notas» para crear la ficha sin enlaces."); return; }
+      const validation = typedUrl ? validateIntegrationUrl(this.type, typedUrl) : { ok: true };
       if (!validation.ok) { new Notice(validation.message); return; }
-      const appValidation = validateAppUrl(appUrl);
+      const appValidation = validateAppUrl(notesOnly ? "" : appUrl, this.type);
       if (!appValidation.ok) { new Notice(appValidation.message); return; }
+      const linkUrl = validation.parsed ? mdSafeHref(validation.parsed.href) : "";
+      const linkApp = appValidation.value ? mdSafeHref(appValidation.value) : "";
+      const linkWebApp = resolvedWebAppUrl ? mdSafeHref(resolvedWebAppUrl) : "";
       create.disabled = true;
       try {
         const service = this.type.service;
@@ -1285,21 +1903,84 @@ class WebLinkModal extends Modal {
         const securityNotice = access === "public-edit"
           ? "> [!warning] Enlace público con edición\n> Cualquier persona que obtenga el enlace podría modificar o eliminar contenido. Confirma los permisos directamente en el servicio.\n\n"
           : access === "private"
-            ? "> [!info] Requiere cuenta\n> Si el inicio de sesión falla dentro de Obsidian, utiliza **Abrir en navegador externo**. Pointix nunca solicita ni guarda tu contraseña.\n\n"
+            ? "> [!info] Requiere cuenta\n> Si el inicio de sesión falla en el visor de Obsidian, utiliza **Abrir enlace público en el navegador externo** o la aplicación instalada. Pointix nunca solicita ni guarda tu contraseña.\n\n"
             : "> [!tip] Acceso de visualización\n> La disponibilidad depende de los permisos vigentes en el servicio. Evita publicar información privada o sensible.\n\n";
-        const externalUri = `obsidian://pointix-open-web?url=${encodeURIComponent(url)}`;
-        const appUri = `obsidian://pointix-open-app?url=${encodeURIComponent(appValidation.value || url)}`;
+        const svcId = encodeURIComponent(this.type.id);
+        const externalUri = linkUrl ? `obsidian://pointix-open-web?service=${svcId}&url=${encodeURIComponent(validation.parsed.href)}` : "";
+        const appUri = linkApp ? `obsidian://pointix-open-app?service=${svcId}&url=${encodeURIComponent(appValidation.value)}` : "";
+        const webAppAction = linkWebApp ? `- [Abrir la aplicación web de ${service}](${linkWebApp})\n` : "";
+        const appAction = appUri ? `- [Abrir en la aplicación instalada de ${service}](${appUri})\n` : "";
+        const publicActions = linkUrl ? `- [Abrir enlace público](${linkUrl})\n- [Abrir enlace público en el navegador externo](${externalUri})\n- Enlace público original: ${linkUrl}\n` : "";
+
+        const noWebNotice = this.type.hasWebApp === false ? `> [!info] Sin aplicación web\n> ${service} se abre mediante la aplicación instalada. Si no responde, comprueba que esté instalada y que el enlace externo se haya copiado desde ${service}.\n\n` : "";
+        const notesOnlyNotice = `> [!note] Ficha solo para notas\n> Esta ficha no guarda enlaces de ${service}. Úsala para anotar y relacionar tu trabajo con otras notas.\n\n`;
+        const openSection = notesOnly ? notesOnlyNotice : `## Abrir recurso\n\n${webAppAction}${appAction}${publicActions}\n${noWebNotice}${securityNotice}> [!failure] Si aparece un error de acceso, 401 o inicio de sesión\n> Regresa a esta ficha y utiliza otra ruta disponible. Pointix no solicita ni guarda tu contraseña.\n\n`;
         const importSection = this.type.importHelp ? `## Importar manualmente\n\n${this.type.importHelp}\n\n> [!important] Pointix no entra a tu cuenta ni descarga bibliotecas completas. Exporta desde la aplicación original y selecciona únicamente lo que quieras incorporar.\n\n` : "";
         const linkedType = {
           id: this.type.id,
           name: service,
           ext: "md",
-          content: ({ title }) => `---\npointix-type: integracion\nservicio: "${yamlText(service)}"\ncategoria-integracion: "${yamlText(this.type.group)}"\nurl: "${yamlText(url)}"\napp-url: "${yamlText(appValidation.value || url)}"\nacceso: "${yamlText(accessLabels[access])}"\nmodo-pointix: "${yamlText(this.type.mode)}"\nestado: activo\nfecha-creacion: ${today()}\nultima-revision: ${today()}\ntags:\n  - pointix\n  - integracion\n---\n\n# ${title}\n\n> [!abstract] ${service}\n> **Categoría:** ${this.type.group}  ·  **Acceso:** ${accessLabels[access]}  ·  **Compatibilidad:** ${this.type.mode}\n> ${purpose || "Recurso web relacionado con esta bóveda."}\n\n## Abrir recurso\n\n- [Abrir dentro de Obsidian](${url})\n- [Abrir con ${service} o elegir aplicación](${appUri})\n- [Abrir en navegador externo](${externalUri})\n- Enlace original: ${url}\n\n${securityNotice}> [!failure] Si aparece un error de acceso, 401 o inicio de sesión\n> El servicio puede bloquear la autenticación dentro de Obsidian. Regresa a esta ficha y usa **Abrir en navegador externo**; después comprueba que estés usando la cuenta autorizada.\n\n${importSection}## Estado y responsables\n\n- **Estado:** Activo\n- **Responsable:**\n- **Próxima revisión:**\n\n## Anotaciones\n\n- \n\n## Recursos relacionados\n\n- [[ ]]\n`,
+          content: ({ title }) => `---\npointix-type: integracion\nservicio: "${yamlText(service)}"\ncategoria-integracion: "${yamlText(this.type.group)}"\nurl-publica: "${yamlText(linkUrl)}"\napp-url: "${yamlText(linkApp)}"\nweb-app: "${yamlText(linkWebApp)}"\nsolo-notas: ${notesOnly}\nacceso: "${yamlText(accessLabels[access])}"\nmodo-pointix: "${yamlText(this.type.mode)}"\nestado: activo\nfecha-creacion: ${today()}\nultima-revision: ${today()}\ntags:\n  - pointix\n  - integracion\n---\n\n# ${title}\n\n> [!abstract] ${service}\n> **Categoría:** ${this.type.group}  ·  **Acceso:** ${accessLabels[access]}  ·  **Compatibilidad:** ${this.type.mode}\n> ${purpose || "Recurso relacionado con esta bóveda."}\n\n${openSection}${importSection}## Estado y responsables\n\n- **Estado:** Activo\n- **Responsable:**\n- **Próxima revisión:**\n\n## Anotaciones\n\n- \n\n## Recursos relacionados\n\n- [[ ]]\n`,
         };
         const result = await this.plugin.createFile(linkedType, name, folderField.getValue());
         if (result) this.close();
       } finally { create.disabled = false; }
     });
+  }
+  onClose() { this.contentEl.empty(); }
+}
+
+class ConfirmOpenModal extends Modal {
+  constructor(app, options, onConfirm) { super(app); this.options = options; this.onConfirm = onConfirm; }
+  onOpen() {
+    this.modalEl.addClass("pfh-modal");
+    const { contentEl } = this;
+    contentEl.createEl("h2", { text: this.options.title });
+    contentEl.createEl("p", { text: this.options.message });
+    contentEl.createEl("code", { cls: "pfh-confirm-url", text: this.options.url });
+    const buttons = contentEl.createDiv("pfh-modal-actions");
+    const cancel = buttons.createEl("button", { text: "Cancelar" });
+    const confirm = buttons.createEl("button", { cls: "mod-cta", text: this.options.confirmText || "Abrir" });
+    cancel.addEventListener("click", () => this.close());
+    confirm.addEventListener("click", async () => { this.close(); await this.onConfirm(); });
+    window.setTimeout(() => cancel.focus(), 30);
+  }
+  onClose() { this.contentEl.empty(); }
+}
+
+class VaultFilePickerModal extends Modal {
+  constructor(app, plugin, options) { super(app); this.plugin = plugin; this.options = options; this.query = ""; }
+  onOpen() {
+    this.modalEl.addClass("pfh-pdf-modal");
+    const { contentEl } = this;
+    contentEl.createEl("h2", { text: this.options.title });
+    contentEl.createEl("p", { text: "Busca por nombre o carpeta. Pointix no mueve ni copia nada: lo abre desde donde ya está." });
+    const searchWrap = contentEl.createDiv("pfh-search pfh-pdf-search");
+    searchWrap.append(createIcon("search"));
+    const search = searchWrap.createEl("input", { attr: { type: "search", placeholder: "Buscar por nombre o carpeta…", "aria-label": "Buscar archivo en la bóveda" } });
+    const results = contentEl.createDiv("pfh-pdf-results");
+    const all = this.app.vault.getFiles().filter((file) => matchesExtensions(file, this.options.extensions)).sort((a, b) => a.path.localeCompare(b.path));
+    const render = () => {
+      results.empty();
+      const query = this.query.trim().toLowerCase();
+      const matches = all.filter((file) => !query || file.path.toLowerCase().includes(query));
+      if (!matches.length) {
+        results.createDiv({ cls: "pfh-empty", text: all.length ? "No encontramos un archivo con ese nombre o ruta." : "Todavía no hay archivos de este tipo en tu bóveda." });
+        return;
+      }
+      matches.slice(0, 200).forEach((file) => {
+        const item = results.createEl("button", { cls: "pfh-pdf-item", attr: { type: "button", "aria-label": `Abrir ${file.path}` } });
+        const icon = item.createSpan("pfh-picker-icon"); setIcon(icon, iconForExtension(file.extension));
+        const labels = item.createSpan("pfh-picker-text");
+        labels.createEl("strong", { text: file.name });
+        labels.createEl("small", { text: file.parent?.path || "Raíz de la bóveda" });
+        item.addEventListener("click", async () => { this.close(); await this.options.onPick(file); });
+      });
+      if (matches.length > 200) results.createDiv({ cls: "pfh-pdf-limit", text: `Mostrando 200 de ${matches.length}. Escribe más del nombre para precisar.` });
+    };
+    search.addEventListener("input", () => { this.query = search.value; render(); });
+    render();
+    setTimeout(() => search.focus(), 50);
   }
   onClose() { this.contentEl.empty(); }
 }
@@ -1315,8 +1996,7 @@ class NameFileModal extends Modal {
     new Setting(contentEl).setName("Nombre").addText((text) => text.setValue(name).onChange((value) => { name = value; }));
     const folderField = addVaultFolderField(contentEl, this.app, this.plugin.settings.defaultFolder, "Guardar en");
     const buttons = contentEl.createDiv("pfh-modal-actions");
-    const cancel = buttons.createEl("button", { text: "Cancelar" });
-    cancel.addEventListener("click", () => this.close());
+    const cancel = buttons.createEl("button", { text: "Cancelar" });    cancel.addEventListener("click", () => this.close());
     const create = buttons.createEl("button", { cls: "mod-cta", text: "Crear" });
     create.addEventListener("click", async () => {
       if (create.disabled) return;
@@ -1330,6 +2010,93 @@ class NameFileModal extends Modal {
       } finally {
         create.disabled = false;
       }
+    });
+    this.renderOpenSection(contentEl, folderField);
+    setTimeout(() => contentEl.querySelector("input")?.select(), 50);
+  }
+
+  // «Abrir existente»: solo en los tipos donde tiene sentido (ver openModesFor).
+  renderOpenSection(contentEl, folderField) {
+    const modes = openModesFor(this.type);
+    if (!modes) return;
+    contentEl.createEl("hr", { cls: "pfh-modal-divider" });
+    contentEl.createEl("h3", { cls: "pfh-open-title", text: `Abrir ${modes.noun} existente` });
+    const row = (label, hint, buttonText, onClick) => {
+      const item = contentEl.createDiv("pfh-open-row");
+      const copy = item.createDiv("pfh-open-copy");
+      copy.createEl("strong", { text: label });
+      copy.createEl("small", { text: hint });
+      const button = item.createEl("button", { text: buttonText, attr: { type: "button", "aria-label": `${label}: ${buttonText}` } });
+      button.addEventListener("click", onClick);
+      return item;
+    };
+    row("De la bóveda", `Busca un ${modes.noun} que ya está guardado en tu bóveda.`, "Buscar…", () => {
+      new VaultFilePickerModal(this.app, this.plugin, {
+        title: `Abrir ${modes.noun} de tu bóveda`,
+        extensions: modes.vault,
+        onPick: async (file) => { this.close(); await this.plugin.openVaultFile(file); },
+      }).open();
+    });
+    if (!modes.device) return;
+    const chooser = contentEl.createEl("input", { attr: { type: "file", accept: modes.device.map((ext) => `.${ext}`).join(","), "aria-label": "Elegir un archivo del dispositivo", tabindex: "-1", hidden: "" } });
+    row("De mis dispositivos", `Elige un ${modes.noun} de este equipo, de Descargas o de otra carpeta.`, "Buscar…", () => chooser.click());
+    const chosen = contentEl.createDiv({ cls: "pfh-device-choice", attr: { "aria-live": "polite" } });
+    let source = null;
+    chooser.addEventListener("change", () => {
+      source = chooser.files?.[0] || null;
+      chosen.empty();
+      if (!source) return;
+      chosen.createDiv({ cls: "pfh-selected-file", text: `${source.name} · ${formatBytes(source.size)}` });
+      const actions = chosen.createDiv("pfh-device-actions");
+      const importButton = actions.createEl("button", { cls: "mod-cta", text: "Importar una copia" });
+      const openButton = actions.createEl("button", { text: Platform.isMobile ? "Abrir con otra app" : "Abrir desde su ubicación" });
+      chosen.createEl("small", { text: "«Importar» copia solo este archivo a la carpeta de «Guardar en». Después se abre con la aplicación predeterminada." });
+      importButton.addEventListener("click", async () => {
+        if (!source || importButton.disabled) return;
+        if (source.size > maxImportBytes()) { new Notice(`El archivo supera el límite seguro de ${maxImportLabel()}.`); return; }
+        importButton.disabled = true;
+        try {
+          const file = await this.plugin.importBrowserFile(source, folderField.getValue());
+          this.close(); new Notice(`Archivo importado: ${file.path}`);
+          await this.plugin.openVaultFile(file);
+        } catch (error) {
+          console.error("Pointix File Hub: import from creation dialog failed", error);
+          new Notice(error?.message === "hidden-folder" || error?.message === "path-traversal" || error?.message === "absolute-path" ? "La carpeta debe ser una ruta relativa y segura dentro de la bóveda." : "No se pudo importar el archivo. No se copiaron carpetas ni otros elementos.");
+          importButton.disabled = false;
+        }
+      });
+      openButton.addEventListener("click", async () => { await this.plugin.openSelectedFile(source); });
+    });
+  }
+  onClose() { this.contentEl.empty(); }
+}
+
+class NewTemplateModal extends Modal {
+  constructor(app, plugin) { super(app); this.plugin = plugin; }
+  onOpen() {
+    this.modalEl.addClass("pfh-modal");
+    const { contentEl } = this;
+    contentEl.createEl("h2", { text: "Nueva plantilla propia" });
+    contentEl.createEl("p", { text: "Se guarda como una nota Markdown en tu carpeta de plantillas y aparecerá en Plantillas → Mis plantillas. Dentro puedes usar {{title}}, {{date}} y {{time}}." });
+    let name = "Mi plantilla"; let purpose = "";
+    new Setting(contentEl).setName("Nombre").addText((text) => text.setValue(name).onChange((value) => { name = value; }));
+    new Setting(contentEl).setName("Para qué sirve").setDesc("Aparece como descripción de la tarjeta.").addText((text) => text.setPlaceholder("Ej.: seguimiento semanal de clientes").onChange((value) => { purpose = value.trim(); }));
+    const folder = this.plugin.templatesFolderPath();
+    contentEl.createEl("small", { cls: "pfh-selected-file", text: `Se guardará en: ${folder || "(carpeta no válida; corrígela en Ajustes)"}` });
+    const buttons = contentEl.createDiv("pfh-modal-actions");
+    buttons.createEl("button", { text: "Cancelar" }).addEventListener("click", () => this.close());
+    const create = buttons.createEl("button", { cls: "mod-cta", text: "Crear plantilla" });
+    create.addEventListener("click", async () => {
+      if (create.disabled) return;
+      if (!folder) { new Notice("La carpeta de plantillas no es válida. Corrígela en Ajustes → Pointix File Hub."); return; }
+      create.disabled = true;
+      try {
+        const file = await this.plugin.createUserTemplate(name, purpose);
+        if (file) this.close();
+      } catch (error) {
+        console.error("Pointix File Hub: template creation failed", error);
+        new Notice("No se pudo crear la plantilla.");
+      } finally { create.disabled = false; }
     });
     setTimeout(() => contentEl.querySelector("input")?.select(), 50);
   }
@@ -1390,7 +2157,25 @@ class PointixFileHubSettingTab extends PluginSettingTab {
     containerEl.createEl("h2", { text: "Pointix File Hub" });
     containerEl.createEl("p", { text: "Configura dónde crear archivos. Las plantillas de Office son internas y no se copian carpetas ni archivos de tu bóveda." });
     new Setting(containerEl).setName("Carpeta predeterminada").setDesc("Ruta dentro de la bóveda para los archivos nuevos.").addText((text) => text.setPlaceholder("Documentos").setValue(this.plugin.settings.defaultFolder).onChange(async (value) => { this.plugin.settings.defaultFolder = value; await this.plugin.saveSettings(); }));
+    new Setting(containerEl).setName("Carpeta de mis plantillas").setDesc("Cada nota Markdown de esta carpeta aparece como tarjeta en Plantillas → Mis plantillas. Puedes usar {{title}}, {{date}} y {{time}}.").addText((text) => text.setPlaceholder(DEFAULT_TEMPLATES_FOLDER).setValue(this.plugin.settings.templatesFolder || DEFAULT_TEMPLATES_FOLDER).onChange(async (value) => {
+      try { safeFolder(value || DEFAULT_TEMPLATES_FOLDER); } catch (error) { return; }
+      this.plugin.settings.templatesFolder = value.trim() || DEFAULT_TEMPLATES_FOLDER;
+      await this.plugin.saveSettings();
+    }));
     new Setting(containerEl).setName("Abrir después de crear").setDesc("Abre el archivo nativo o su ficha de Pointix.").addToggle((toggle) => toggle.setValue(this.plugin.settings.openAfterCreate).onChange(async (value) => { this.plugin.settings.openAfterCreate = value; await this.plugin.saveSettings(); }));
+    containerEl.createEl("h3", { text: "Inicio de Obsidian" });
+    new Setting(containerEl).setName("Abrir Pointix al iniciar Obsidian").setDesc("Muestra Pointix File Hub como pantalla principal cada vez que abres la bóveda.").addToggle((toggle) => toggle.setValue(Boolean(this.plugin.settings.openOnStartup)).onChange(async (value) => {
+      this.plugin.settings.openOnStartup = value; await this.plugin.saveSettings();
+    }));
+    new Setting(containerEl).setName("Fijar la pestaña de Pointix").setDesc("La pestaña del Hub queda fijada al inicio de la barra de pestañas y no se cierra por accidente.").addToggle((toggle) => toggle.setValue(Boolean(this.plugin.settings.pinHubTab)).onChange(async (value) => {
+      this.plugin.settings.pinHubTab = value; await this.plugin.saveSettings(); this.plugin.syncPinned(value);
+    }));
+    new Setting(containerEl).setName("Pointix en la pestaña nueva").setDesc("Muestra el acceso a Pointix File Hub encima de las opciones de la pestaña nueva de Obsidian.").addToggle((toggle) => toggle.setValue(this.plugin.settings.showStartEntry !== false).onChange(async (value) => {
+      this.plugin.settings.showStartEntry = value; await this.plugin.saveSettings(); this.plugin.syncChrome();
+    }));
+    new Setting(containerEl).setName("Botón en la barra de pestañas").setDesc("Icono de Pointix al inicio de la barra de pestañas (solo escritorio). En el teléfono usa la barra lateral.").addToggle((toggle) => toggle.setValue(this.plugin.settings.showTabBarButton !== false).onChange(async (value) => {
+      this.plugin.settings.showTabBarButton = value; await this.plugin.saveSettings(); this.plugin.syncChrome();
+    }));
     new Setting(containerEl).setName("Vista móvil").setDesc("La lista prioriza legibilidad; la cuadrícula muestra más opciones a la vez.").addDropdown((dropdown) => dropdown.addOption("list", "Lista compacta").addOption("grid", "Cuadrícula").setValue(this.plugin.settings.mobileView || "list").onChange(async (value) => { this.plugin.settings.mobileView = value; await this.plugin.saveSettings(); }));
     new Setting(containerEl).setName("Restablecer organización").setDesc("Recupera tarjetas ocultas y el orden original. No modifica ningún archivo.").addButton((button) => button.setButtonText("Restablecer catálogo").onClick(async () => { this.plugin.settings.hiddenIds = []; this.plugin.settings.categoryOrder = {}; await this.plugin.saveSettings(); new Notice("Catálogo restablecido."); }));
     containerEl.createEl("h3", { text: "Paquetes de creación" });
@@ -1408,10 +2193,13 @@ class PointixFileHubSettingTab extends PluginSettingTab {
             await this.plugin.saveSettings();
           }));
     });
-    containerEl.createEl("h3", { text: "Apoyar Pointix" });
-    const support = containerEl.createEl("p", { text: "Si Pointix File Hub te ahorra tiempo, puedes apoyar su desarrollo e invitar al proyecto un café en " });
+    containerEl.createEl("h3", { text: "Soporte y desarrollo" });
+    const contact = containerEl.createEl("p", { text: "¿Encontraste un problema o tienes una sugerencia? Escríbenos a " });
+    contact.createEl("a", { text: "servicios.globix@gmail.com", href: "mailto:servicios.globix@gmail.com" });
+    contact.appendText(" o abre un reporte en GitHub. No envíes contraseñas, claves ni contenido privado de tu bóveda.");
+    const support = containerEl.createEl("p", { text: "Si Pointix File Hub te ahorra tiempo, puedes apoyar voluntariamente su desarrollo e invitar al proyecto un café en " });
     support.createEl("a", { text: "Ko-fi", href: "https://ko-fi.com/exprorerit" });
-    support.appendText(". Gracias por ayudarnos a mantenerlo útil, privado y accesible para la comunidad.");
+    support.appendText(". El apoyo no desbloquea funciones ni cambia el acceso al complemento.");
   }
 }
 
@@ -1451,4 +2239,4 @@ function formatBytes(bytes) {
 }
 
 module.exports = PointixFileHubPlugin;
-PointixFileHubPlugin.__test = { safeFolder, safeName, base64ToArrayBuffer, OFFICE_TEMPLATES, FILE_TYPES, WEB_INTEGRATIONS, PACKS, packIdFor, kindFor, smartNote, companionNote, validateIntegrationUrl, today };
+PointixFileHubPlugin.__test = { safeFolder, safeName, base64ToArrayBuffer, OFFICE_TEMPLATES, FILE_TYPES, WEB_INTEGRATIONS, PACKS, packIdFor, kindFor, smartNote, companionNote, validateIntegrationUrl, validateAppUrl, today };
