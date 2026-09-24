@@ -127,7 +127,7 @@ test("smart note pack provides structured Markdown templates", () => {
   const { FILE_TYPES, PACKS } = PluginClass.__test;
   const smartTypes = FILE_TYPES.filter((type) => type.category === "Plantillas");
   assert.ok(PACKS.some((pack) => pack.id === "smart-notes"));
-  assert.equal(smartTypes.length, 15);
+  assert.equal(smartTypes.length, 16);
   for (const type of smartTypes) {
     assert.equal(type.ext, "md");
     const content = type.content({ title: "Prueba" });
@@ -176,19 +176,19 @@ test("external PDF import accepts one selected file and never scans its folder",
   assert.doesNotMatch(source, /readdir|readDirectory|adapter\.list/);
 });
 
-test("catalog exposes all nine configurable packs", () => {
+test("catalog exposes all configurable packs", () => {
   const PluginClass = loadPlugin();
   const { PACKS } = PluginClass.__test;
-  assert.deepEqual(PACKS.map((pack) => pack.id), ["essentials", "smart-notes", "office", "data", "code", "visual", "multimedia", "academic", "business"]);
+  assert.deepEqual(PACKS.map((pack) => pack.id), ["essentials", "smart-notes", "office", "data", "code", "visual", "multimedia", "academic", "business", "ai"]);
 });
 
 test("web integrations create linked Markdown instead of fake service files", () => {
   const PluginClass = loadPlugin();
   const { FILE_TYPES, WEB_INTEGRATIONS } = PluginClass.__test;
   const webLinks = FILE_TYPES.filter((type) => type.action === "web-link");
-  assert.equal(webLinks.length, 53);
+  assert.equal(webLinks.length, 69);
   assert.equal(webLinks.length, WEB_INTEGRATIONS.length);
-  for (const service of ["Microsoft Visio", "Microsoft Forms", "Genially", "Joplin", "Evernote", "Standard Notes", "Notesnook", "Simplenote", "UpNote", "Yandex Boards", "Yandex Calendar", "Yandex Forms", "Yandex Disk", "OneDrive", "Proton Drive", "TeraBox", "Google Sheets", "Canva", "Figma"]) {
+  for (const service of ["Microsoft Visio", "Microsoft Forms", "Genially", "Joplin", "Evernote", "Standard Notes", "Notesnook", "Simplenote", "UpNote", "Yandex Boards", "Yandex Calendar", "Yandex Forms", "Yandex Disk", "OneDrive", "Proton Drive", "TeraBox", "Google Sheets", "Canva", "Figma", "Tencent Hunyuan", "Baidu Wenxin", "Tencent Yuanbao"]) {
     assert.ok(webLinks.some((type) => type.service === service), `missing ${service}`);
   }
   assert.ok(webLinks.every((type) => type.ext === "md"));
@@ -230,8 +230,8 @@ test("integration validation rejects login pages and wrong service domains", () 
 test("integration notes provide a safe external-browser recovery route", () => {
   const source = fs.readFileSync(path.join(root, "main.js"), "utf8");
   assert.match(source, /registerObsidianProtocolHandler\("pointix-open-web"/);
-  assert.match(source, /Abrir en navegador externo/);
-  assert.match(source, /Abrir con \$\{service\} o elegir aplicación/);
+  assert.match(source, /Abrir enlace público en el navegador externo/);
+  assert.match(source, /Abrir en la aplicación instalada de \$\{service\}/);
   assert.match(source, /registerObsidianProtocolHandler\("pointix-open-app"/);
   assert.match(source, /error de acceso, 401 o inicio de sesión/);
   assert.doesNotMatch(source, /password|contraseña.*addText/i);
