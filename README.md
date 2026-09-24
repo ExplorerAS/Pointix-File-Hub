@@ -4,7 +4,7 @@
 
 Pointix File Hub is a visual workspace for notes, templates, Office documents, data files, PDFs, media and external web resources. It is designed to keep the vault as the center of the workflow while giving the user explicit choices when opening or importing files from the device.
 
-> **Status:** public beta. Keep an up-to-date backup of important vaults while testing beta releases.
+> **Status:** stable release. Pointix File Hub 0.10.3 has been manually tested, distributed successfully through BRAT, and scanned by the Obsidian Community review system.
 
 ## What Pointix File Hub does
 
@@ -116,9 +116,22 @@ External web services remain subject to their own privacy policies, authenticati
 
 Startup opening, tab pinning and extra UI entry points are **off or user-configurable** as appropriate; Pointix does not require them for normal use.
 
-## Installation with BRAT
+## Installation
 
-Pointix File Hub can be tested before Community directory approval using **BRAT**.
+### Install from Obsidian Community
+
+Pointix File Hub is available from the Obsidian Community directory.
+
+1. Open **Settings → Community plugins** in Obsidian.
+2. Select **Browse**.
+3. Search for **Pointix File Hub**.
+4. Open the plugin listing and select **Install**.
+5. When installation finishes, select **Enable**.
+6. Open Pointix from the ribbon icon or run **Pointix File Hub: Open file hub** from the Command palette.
+
+### Install with BRAT
+
+BRAT can be used to test GitHub releases before or outside the normal Community-directory update flow.
 
 1. Install and enable BRAT in Obsidian.
 2. Run **BRAT: Add a beta plugin for testing**.
@@ -151,9 +164,9 @@ Place them in:
 
 Reload Obsidian, then enable **Pointix File Hub** in **Settings → Community plugins**.
 
-## Community directory readiness
+## Community directory and releases
 
-The repository is prepared for Obsidian Community review with:
+Pointix File Hub is published in the Obsidian Community directory. The repository follows the release structure expected by Obsidian:
 
 - `manifest.json` in the repository root;
 - `README.md` in the repository root;
@@ -162,15 +175,15 @@ The repository is prepared for Obsidian Community review with:
 - release assets expected as `manifest.json`, `main.js` and `styles.css`;
 - semantic version tags matching the `version` field exactly.
 
-The current beta version is **0.10.3** and its GitHub release tag must therefore be exactly **`0.10.3`**.
+The current stable version is **0.10.3** and its GitHub release tag is exactly **`0.10.3`**, matching the `version` field in `manifest.json`.
 
 ## Compatibility
 
 - Minimum declared Obsidian version: **1.5.0**.
 - `isDesktopOnly` is **false**.
 - The code guards Electron-specific behavior so it is used only on desktop.
-- Linux and Obsidian mobile emulation have been used during beta verification.
-- Real Android/iOS devices and Windows/macOS should continue to be exercised during public beta before treating all platform combinations as fully verified.
+- The plugin is designed for desktop and mobile use; platform-specific system-opening behavior depends on the capabilities available in Obsidian and the operating system.
+- New releases should continue to be tested manually on the platforms affected by each change before publication.
 
 ## Support
 
