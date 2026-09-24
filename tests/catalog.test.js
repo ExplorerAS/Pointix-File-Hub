@@ -125,9 +125,11 @@ test("Excalidraw uses the official automation API and performs no manual write",
 test("smart note pack provides structured Markdown templates", () => {
   const PluginClass = loadPlugin();
   const { FILE_TYPES, PACKS } = PluginClass.__test;
-  const smartTypes = FILE_TYPES.filter((type) => type.category === "Plantillas");
+  const smartTypes = FILE_TYPES.filter((type) => type.category === "Plantillas" && typeof type.content === "function");
+  const templateCreator = FILE_TYPES.find((type) => type.id === "new-user-template");
   assert.ok(PACKS.some((pack) => pack.id === "smart-notes"));
-  assert.equal(smartTypes.length, 16);
+  assert.equal(smartTypes.length, 15);
+  assert.equal(templateCreator?.action, "new-template");
   for (const type of smartTypes) {
     assert.equal(type.ext, "md");
     const content = type.content({ title: "Prueba" });
@@ -188,8 +190,11 @@ test("web integrations create linked Markdown instead of fake service files", ()
   const webLinks = FILE_TYPES.filter((type) => type.action === "web-link");
   assert.equal(webLinks.length, 69);
   assert.equal(webLinks.length, WEB_INTEGRATIONS.length);
-  for (const service of ["Microsoft Visio", "Microsoft Forms", "Genially", "Joplin", "Evernote", "Standard Notes", "Notesnook", "Simplenote", "UpNote", "Yandex Boards", "Yandex Calendar", "Yandex Forms", "Yandex Disk", "OneDrive", "Proton Drive", "TeraBox", "Google Sheets", "Canva", "Figma", "Tencent Hunyuan", "Baidu Wenxin", "Tencent Yuanbao"]) {
+  for (const service of ["Microsoft Visio", "Microsoft Forms", "Genially", "Joplin", "Evernote", "Standard Notes", "Notesnook", "Simplenote", "UpNote", "Yandex Boards", "Yandex Calendar", "Yandex Forms", "Yandex Disk", "OneDrive", "Proton Drive", "TeraBox", "Google Sheets", "Canva", "Figma"]) {
     assert.ok(webLinks.some((type) => type.service === service), `missing ${service}`);
+  }
+  for (const id of ["hunyuan-link", "wenxin-link", "yuanbao-link"]) {
+    assert.ok(webLinks.some((type) => type.id === id), `missing ${id}`);
   }
   assert.ok(webLinks.every((type) => type.ext === "md"));
   assert.ok(webLinks.every((type) => type.group && type.mode && (type.domains?.length || type.allowCustomDomain)));
