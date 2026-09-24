@@ -186,7 +186,7 @@ test("web integrations create linked Markdown instead of fake service files", ()
   const PluginClass = loadPlugin();
   const { FILE_TYPES, WEB_INTEGRATIONS } = PluginClass.__test;
   const webLinks = FILE_TYPES.filter((type) => type.action === "web-link");
-  assert.equal(webLinks.length, 50);
+  assert.equal(webLinks.length, 53);
   assert.equal(webLinks.length, WEB_INTEGRATIONS.length);
   for (const service of ["Microsoft Visio", "Microsoft Forms", "Genially", "Joplin", "Evernote", "Standard Notes", "Notesnook", "Simplenote", "UpNote", "Yandex Boards", "Yandex Calendar", "Yandex Forms", "Yandex Disk", "OneDrive", "Proton Drive", "TeraBox", "Google Sheets", "Canva", "Figma"]) {
     assert.ok(webLinks.some((type) => type.service === service), `missing ${service}`);
