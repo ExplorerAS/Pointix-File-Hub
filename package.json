@@ -1,6 +1,6 @@
 {
   "name": "pointix-file-hub",
-  "version": "0.7.0",
+  "version": "0.10.3",
   "private": true,
   "description": "A visual file creation and launch hub for Obsidian.",
   "scripts": {
