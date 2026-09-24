@@ -1,21 +1,40 @@
-# Soporte y sugerencias
+# Soporte de Pointix File Hub
 
-Queremos que Pointix File Hub sea útil, cómodo y seguro para toda la comunidad de Obsidian.
-
-## Proponer una idea
-
-Abre una [solicitud de función](https://github.com/ExplorerAS/Pointix-File-Hub/issues/new?template=feature_request.yml) e indica qué problema resolvería, cómo imaginas el flujo y en qué dispositivo usas Obsidian.
+Gracias por probar **Pointix File Hub**. Para que un reporte pueda revisarse con rapidez, incluye únicamente la información necesaria y evita compartir datos privados.
 
 ## Reportar un problema
 
-Abre un [reporte de error](https://github.com/ExplorerAS/Pointix-File-Hub/issues) e incluye la versión de Obsidian, el sistema operativo, los pasos para reproducirlo y, si es posible, una captura sin información privada.
+Abre un issue en GitHub:
 
-También puedes escribir a [servicios.globix@gmail.com](mailto:servicios.globix@gmail.com).
+https://github.com/ExplorerAS/Pointix-File-Hub/issues
 
-**Dónde encontrar el contacto:** el correo aparece en esta guía, en la sección “Ideas, sugerencias y soporte” del README y en la documentación pública del proyecto.
+Incluye, cuando aplique:
 
-Si deseas apoyar el desarrollo, visita [Ko-fi](https://ko-fi.com/exprorerit).
+- versión de Pointix File Hub;
+- versión de Obsidian;
+- sistema operativo y dispositivo;
+- pasos para reproducir el problema;
+- comportamiento esperado y comportamiento observado;
+- captura o grabación breve, siempre sin información privada.
 
-**Dónde encontrar Ko-fi:** el enlace aparece en esta guía, en “Invítanos un café” del README y dentro de `Preferencias → Pointix File Hub → Apoyar Pointix`.
+## Sugerencias
 
-Por seguridad, nunca envíes contraseñas, claves, bóvedas completas ni notas privadas.
+Las propuestas de funciones también se reciben en GitHub. Explica qué problema resolvería la idea y cómo imaginas el flujo de uso.
+
+## Correo de soporte
+
+**servicios.globix@gmail.com**
+
+El correo también aparece en `README.md` y en **Ajustes → Pointix File Hub → Soporte y desarrollo**.
+
+## Apoyar el desarrollo
+
+El apoyo es voluntario y no desbloquea funciones:
+
+https://ko-fi.com/exprorerit
+
+Obsidian también puede mostrar este enlace desde el campo `fundingUrl` del manifiesto.
+
+## Privacidad al pedir ayuda
+
+Nunca envíes contraseñas, claves, tokens, una bóveda completa ni notas privadas. Si una captura contiene información sensible, ocúltala antes de adjuntarla.
