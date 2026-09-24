@@ -1,202 +1,193 @@
 # Pointix File Hub
 
-**Crea, conecta y encuentra todo sin perder el contexto de Obsidian.**
+**Create, connect, import and open your work from one visual hub inside Obsidian.**
 
-Pointix File Hub es un centro visual adaptable para crear notas y documentos, trabajar con formatos técnicos, abrir archivos de la bóveda, importar un único archivo desde el dispositivo y relacionar servicios web mediante fichas Markdown. Funciona en escritorio y móvil y no requiere una cuenta Pointix.
+Pointix File Hub is a visual workspace for notes, templates, Office documents, data files, PDFs, media and external web resources. It is designed to keep the vault as the center of the workflow while giving the user explicit choices when opening or importing files from the device.
 
-> **Estado:** beta pública para pruebas. Antes de utilizar una versión beta en una bóveda importante, conserva una copia de seguridad actualizada.
+> **Status:** public beta. Keep an up-to-date backup of important vaults while testing beta releases.
 
-## Novedades de la beta 0.7.0
+## What Pointix File Hub does
 
-- Inicio compacto con **Recientes**, **Favoritos** y categorías dedicadas.
-- Navegación separada: Notas, Documentos, Datos y código, Diseño, Multimedia, PDF, Almacenamiento e Integraciones.
-- Sin estrellas permanentes: mantén presionada una tarjeta en Android o utiliza clic derecho en escritorio.
-- Favoritos, mover al inicio, ocultar y organizar tarjetas por categoría.
-- Reordenamiento mediante arrastre o botones **Subir/Bajar**, sin mover archivos de la bóveda.
-- Vista móvil de lista compacta o cuadrícula configurable.
-- Margen inferior seguro para evitar que los controles móviles de Obsidian cubran el catálogo.
-- **Mis dispositivos:** permite abrir o compartir temporalmente un archivo sin importarlo, o importar exactamente uno en la carpeta elegida.
-- **Centro PDF:** busca, abre con Obsidian o una app instalada, importa en una carpeta elegida y relaciona PDF con notas de lectura.
-- Multimedia y almacenamiento ahora son categorías independientes.
-- 50 integraciones híbridas, incluyendo Standard Notes, Notesnook, Simplenote, UpNote, Joplin, Evernote y los principales proveedores de almacenamiento.
+- Creates Markdown notes and structured templates.
+- Creates DOCX, XLSX and PPTX files from bundled internal templates.
+- Creates and edits common text/data formats such as JSON, YAML, XML, TOML, CSV, SQL, JavaScript, TypeScript, Python and others.
+- Opens PDFs and compatible files already stored in the vault.
+- Lets the user select **one file** from the device to preview temporarily, open with the operating system when supported, or import a copy into the vault.
+- Creates companion notes for media and reading workflows.
+- Creates Markdown link cards for supported web services and cloud resources.
+- Provides favorites, recents, search, category ordering and hidden-card controls without moving vault files.
 
-## Cómo abrir Pointix
+## What's new in 0.10.3
 
-- Icono **Pointix File Hub** en la cinta lateral.
-- Comando `Pointix File Hub: Abrir selector de archivos`.
-- Comando `Pointix File Hub: Crear archivo…` para el selector rápido.
-- Menú contextual de un archivo no Markdown: `Abrir en Pointix File Hub`.
+- Three additional AI services in the AI category: **Tencent Hunyuan**, **Baidu Wenxin** and **Tencent Yuanbao**.
+- Optional **Open Pointix when Obsidian starts** setting.
+- Optional **Pin Pointix tab** setting.
+- Pointix access from the new-tab screen and, on desktop, the tab bar.
+- Clearer subcategories for Office documents, notes/text, tables/data, configuration, contacts/bibliography, code/scripts, canvases and diagrams.
+- Existing-file actions were expanded so compatible cards can work with files from the vault or a file explicitly selected from the device.
+- Support and funding information is now available in documentation and plugin settings.
 
-## Catálogo y funciones
+See [CHANGELOG.md](./CHANGELOG.md) for release notes.
 
-### Inicio, búsqueda y personalización
+## Opening Pointix
 
-- **Recientes:** conserva las seis opciones utilizadas más recientemente.
-- **Favoritos:** accesos elegidos por el usuario sin llenar las tarjetas de estrellas.
-- **Búsqueda instantánea:** encuentra formatos, funciones y servicios por nombre o descripción.
-- **Pulsación prolongada / clic derecho:** abre las acciones de personalización.
-- **Organizar categoría:** permite arrastrar o usar botones Subir/Bajar, más confiables en Android.
-- **Ocultar:** retira una opción del catálogo sin desinstalar nada ni modificar archivos.
-- **Restablecer catálogo:** recupera el orden original y todas las tarjetas desde Preferencias.
-- **Paquetes:** permite activar únicamente las familias necesarias.
+After enabling the plugin, you can open it from:
 
-La organización del catálogo se guarda en las preferencias del complemento. Reordenar, ocultar o marcar favoritos **nunca mueve, renombra ni elimina archivos**.
+- the Pointix icon in the Obsidian ribbon;
+- the **Pointix File Hub: Open file hub** command entry (displayed by Obsidian using the plugin name plus the command label);
+- the Pointix entry shown on the new-tab screen when enabled;
+- the optional desktop tab-bar button;
+- a file's context menu for supported non-Markdown files.
 
-### Notas inteligentes
+In the Spanish interface used by the current beta, the principal command label is **Abrir centro de archivos**.
 
-Todas son notas Markdown estándar con propiedades compatibles con Obsidian, búsqueda, Bases, gráfico y otros complementos:
+## Main areas
 
-- Reunión: asistentes, agenda, decisiones, responsables y seguimiento.
-- Proyecto: visión, estado, hitos, riesgos, recursos y próximos pasos.
-- Tarea: resultado esperado, prioridad, ejecución y comprobación final.
-- Diario: intención, agenda, registro y cierre consciente.
-- Idea o brainstorm: exploración, evaluación y conversión en experimento.
-- Cliente: datos, necesidades, historial, servicios y seguimiento.
-- Incidencia o ticket: impacto, diagnóstico, solución y aprendizaje.
-- Factura: control administrativo, importes, vencimiento y cobro.
-- Libro o lectura, receta, código o snippet, contacto, evento, flashcard y referencia.
+### Home and organization
 
-Pointix utiliza `.md` normal; no inventa extensiones especiales que puedan romper la compatibilidad.
+The home view provides **Recents**, **Favorites**, search and category cards. Long-press a card on touch devices or right-click it on desktop to access personalization actions.
 
-### Documentos y oficina
+Changing favorites, ordering or visibility only changes Pointix preferences. It does **not** move, rename or delete the user's files.
 
-- **Documento · Docs:** crea un DOCX válido para Microsoft Word, WPS Office, LibreOffice u otro editor compatible.
-- **Hoja · Sheets:** crea un XLSX válido para Microsoft Excel, WPS Office o LibreOffice.
-- **Presentación · Slides:** crea un PPTX válido para PowerPoint, WPS Office o LibreOffice.
-- RTF, texto, HTML, CSV y Sheet Plus.
-- Vista **File Shell** con nombre, ubicación, formato, tamaño y apertura con una aplicación compatible. En Android usa el menú de compartir/elegir aplicación cuando el sistema lo permite; en escritorio abre la aplicación predeterminada y puede mostrar la carpeta.
+### Templates and notes
 
-Los DOCX, XLSX y PPTX se generan desde plantillas binarias internas controladas. Pointix realiza una única escritura y no copia carpetas de la bóveda.
+Pointix creates standard Markdown files. Built-in templates include workflows such as meetings, projects, tasks, journals, ideas, clients, incidents, invoices, reading notes, contacts, events and references.
 
-### Datos y código
+The **My templates** folder can expose user-created Markdown templates as cards. Template files remain ordinary Markdown.
 
-Editor interno Pointix para JSON, YAML, XML, TOML, SQL, Python, JavaScript, TypeScript, Shell, BAT, Mermaid, SVG, OPML, Draw.io, FreeMind, BibTeX, vCard, iCalendar, Jupyter, HTML, CSV y texto.
+### Office documents
 
-- Guardado manual o con `Ctrl/Cmd + S`.
-- Estado de cambios sin guardar.
-- Validación sintáctica para JSON e IPYNB antes de guardar.
-- Cada acción crea exactamente el archivo solicitado.
+Pointix can create valid DOCX, XLSX and PPTX files from internal bundled templates. The generated file is stored in the selected vault folder and can then be opened with software installed on the user's device, such as Microsoft Office, WPS Office or LibreOffice.
 
-### Diseño y diagramas
+### Data and code
 
-- Canvas nativo de Obsidian.
-- Excalidraw mediante su API oficial cuando el complemento está instalado y activo.
-- Mermaid, SVG, Draw.io y FreeMind.
-- Integraciones con Figma, Canva, Genially, Miro, Mural, Lucidchart, Whimsical, Framer, Microsoft Visio y Yandex Boards.
+Pointix includes an internal text editor for supported text-based formats. JSON and Jupyter/IPYNB content receive syntax validation before save where applicable.
 
-### Centro PDF
+### PDFs and media
 
-- Buscar por nombre o carpeta dentro de la bóveda.
-- Abrir directamente en el visor de Obsidian.
-- Importar un único PDF desde el selector del sistema.
-- Elegir la carpeta de destino dentro de la bóveda.
-- Abrir con el visor de Obsidian, compartir/elegir una app en Android o abrir la aplicación predeterminada en escritorio.
-- Crear una nota compañera con estado de lectura, progreso, resumen, citas, anotaciones y conexiones.
-- Mantener el PDF original sin modificar cuando se trabaja mediante una nota compañera.
+Pointix can search supported vault files, open them with Obsidian or the operating system when available, and create companion notes for reading or media workflows. The original file is not rewritten merely because a companion note is created.
 
-La beta 0.7.0 coordina estas rutas, pero no modifica físicamente el PDF por sí sola. Para resaltado incrustado, formularios, firma o edición utiliza la aplicación externa elegida por el sistema o un complemento especializado, manteniendo una copia de seguridad.
+### Web and cloud links
 
-### Multimedia
+Pointix can create Markdown cards that store links to supported services. These cards are references: Pointix does not sign into those services, sync their libraries or store their passwords.
 
-Pointix crea notas compañeras para imagen, audio, video y EPUB. En cada caso permite elegir un archivo existente de cualquier carpeta de la bóveda o importar exactamente uno desde el dispositivo:
+## Device files and access outside the vault
 
-- Enlace interno al archivo original.
-- Vista incrustada cuando Obsidian admite el formato.
-- Resumen, fuente, estado y anotaciones.
-- Marcas de tiempo para audio y video.
-- Archivo original sin alteraciones.
-- Carpeta del proyecto elegida o escrita por el usuario para guardar el archivo importado y su nota.
+Pointix File Hub can access a file **outside the vault only after the user explicitly selects that file through the device/system file picker**.
 
-### Mis dispositivos
+Depending on platform and file type, Pointix can:
 
-Utiliza el selector oficial de Android, Windows, macOS o iOS para elegir **un único archivo**. Pointix:
+1. show a temporary preview;
+2. ask the operating system to open/share the selected file; or
+3. import a copy into a user-selected vault folder.
 
-- No solicita una carpeta completa.
-- No recorre directorios.
-- No examina otros archivos vecinos.
-- No importa más de un elemento por operación.
-- Rechaza archivos superiores al límite seguro de 500 MB.
-- Crea una copia nueva dentro de la carpeta elegida de la bóveda.
-- Puede abrir o compartir el archivo seleccionado sin importarlo durante esa sesión. Por seguridad del sistema, un archivo externo no importado no conserva una ruta permanente dentro de la bóveda.
+The plugin does not request a whole external folder, crawl neighboring files or silently import multiple files. Temporary previews use the file selected by the user and are discarded when the preview closes.
 
-### Almacenamiento
+On desktop, Pointix may use Obsidian/Electron system-opening capabilities to open a user-selected file or external URL with the default application. These calls are guarded to desktop environments. On mobile, Pointix uses browser/mobile capabilities when available.
 
-Fichas enlazadas para Google Drive, OneDrive, Yandex Disk, Dropbox, Box, Proton Drive, TeraBox, MEGA, pCloud y Nextcloud.
+## Network, privacy and security
 
-Todas funcionan como fichas híbridas: enlace para ver o editar, intento de apertura mediante la app correspondiente o selector del sistema y enlace de respaldo al navegador. Pointix no sincroniza estas nubes ni almacena sus credenciales. El contenido continúa bajo el control del proveedor y de sus permisos.
+- No client-side telemetry.
+- No Pointix account is required.
+- The plugin does not use `fetch`, `requestUrl` or a background API to transmit vault contents.
+- External service links open only after a user action.
+- The plugin does not request or save passwords for third-party services.
+- Risky executable/script extensions are not opened automatically with the system application.
+- Imported device files are limited in size and copied only to a path selected inside the vault.
+- Absolute paths and unsafe `..` path segments are rejected by the creation/import flows.
 
-### Integraciones web
+External web services remain subject to their own privacy policies, authentication rules and availability.
 
-El catálogo incluye 50 servicios distribuidos entre:
+## Settings
 
-- Gestión de proyectos: Trello, Asana, ClickUp, Notion y Jira.
-- Diseño visual: Figma, Canva, Genially, Miro, Mural, Lucidchart, Whimsical, Framer, Visio y Yandex Boards.
-- Comunicación: Slack, Discord, Microsoft Teams y Loom.
-- Productividad y formularios: Calendly, Google Calendar, Yandex Calendar, Airtable, Typeform, Google Forms, Microsoft Forms y Yandex Forms.
-- Notas y conocimiento: Joplin, Evernote, Standard Notes, Notesnook, Simplenote y UpNote.
-- Desarrollo: GitHub, GitLab, CodePen y Replit.
-- Multimedia: YouTube y Vimeo.
-- Oficina web: Google Sheets.
-- Almacenamiento: diez proveedores comunes y Nextcloud autohospedado.
+**Settings → Pointix File Hub** includes:
 
-Cada integración genera una ficha Markdown en la carpeta del proyecto elegida. Incluye enlace, enlace opcional de aplicación, categoría, acceso declarado, contexto, estado, responsables, revisión y anotaciones. Ofrece apertura dentro de Obsidian, intento de apertura con la app correspondiente y salida segura al navegador externo.
+- default destination folder;
+- My templates folder;
+- open after create;
+- open Pointix at startup;
+- pin Pointix tab;
+- show Pointix on the new-tab screen;
+- show the desktop tab-bar button;
+- mobile list/grid preference;
+- reset catalog organization;
+- enable/disable creation packs;
+- support email and voluntary Ko-fi link.
 
-Para Joplin, Evernote, Standard Notes, Notesnook, Simplenote y UpNote, Pointix también explica los formatos de exportación compatibles. La migración es manual: el complemento nunca entra a la cuenta ni descarga una biblioteca completa sin selección del usuario.
+Startup opening, tab pinning and extra UI entry points are **off or user-configurable** as appropriate; Pointix does not require them for normal use.
 
-Los servicios pueden bloquear el visor integrado, cookies o autenticación. Pointix no promete que todos funcionen igual: conserva el enlace y muestra una ruta de recuperación cuando aparece un error 401 o de inicio de sesión.
+## Installation with BRAT
 
-## Seguridad y privacidad
+Pointix File Hub can be tested before Community directory approval using **BRAT**.
 
-- Sin telemetría.
-- Sin cuenta Pointix.
-- Sin solicitudes de red desde el complemento.
-- No solicita ni guarda contraseñas de servicios externos.
-- Bloquea rutas absolutas, segmentos `..` y rutas excesivamente profundas.
-- Impide ejecuciones duplicadas simultáneas para el mismo archivo.
-- No contiene operaciones para copiar, recorrer, mover, renombrar o borrar carpetas de la bóveda.
-- Las integraciones rechazan páginas de acceso conocidas y validan el dominio del servicio.
-- 23 pruebas automáticas verifican catálogo, plantillas, creación única, destinos seguros, rutas híbridas y ausencia de operaciones recursivas o destructivas.
-
-## Instalación de la beta
-
-### BRAT
-
-1. Instala y activa **BRAT** en Obsidian.
-2. Ejecuta `BRAT: Add a beta plugin for testing`.
-3. Pega `https://github.com/ExplorerAS/Pointix-File-Hub`.
-4. Conserva activada la actualización automática de BRAT si deseas recibir nuevas betas.
-5. Activa **Pointix File Hub** en `Preferencias → Complementos comunitarios`.
-
-### Instalación manual
-
-Copia `manifest.json`, `main.js` y `styles.css` en:
+1. Install and enable BRAT in Obsidian.
+2. Run **BRAT: Add a beta plugin for testing**.
+3. Paste this repository URL:
 
 ```text
-TuBóveda/.obsidian/plugins/pointix-file-hub/
+https://github.com/ExplorerAS/Pointix-File-Hub
 ```
 
-Reinicia Obsidian y activa el complemento.
+4. Add the plugin.
+5. Enable **Pointix File Hub** in **Settings → Community plugins**.
 
-## Compatibilidad y complementos opcionales
+BRAT should install the latest GitHub release whose assets include `manifest.json`, `main.js` and `styles.css`.
 
-- Obsidian 1.5.0 o posterior.
-- Android, iOS, Windows, macOS y Linux.
-- Excalidraw es opcional para crear dibujos reales.
-- Sheet Plus es opcional para libros `.univer`.
-- Word, Excel, PowerPoint, WPS Office o LibreOffice se utilizan según las aplicaciones instaladas por el usuario.
+## Manual installation
 
-## Ideas, sugerencias y soporte
+Download the release assets:
 
-- Abre una [idea o reporte en GitHub](https://github.com/ExplorerAS/Pointix-File-Hub/issues).
-- Consulta la [guía de soporte](SUPPORT.md).
-- Correo de contacto y sugerencias: **[servicios.globix@gmail.com](mailto:servicios.globix@gmail.com)**.
+```text
+manifest.json
+main.js
+styles.css
+```
 
-Nunca envíes contraseñas, claves, bóvedas completas ni notas privadas en un reporte.
+Place them in:
 
-## Invítanos un café
+```text
+<Vault>/.obsidian/plugins/pointix-file-hub/
+```
 
-Si Pointix File Hub te ayuda a trabajar mejor, puedes apoyar su desarrollo en **[Ko-fi: ExplorerIT](https://ko-fi.com/exprorerit)**. El apoyo es voluntario y ayuda a mantener el proyecto útil, privado, documentado y accesible para la comunidad.
+Reload Obsidian, then enable **Pointix File Hub** in **Settings → Community plugins**.
 
-## Licencia
+## Community directory readiness
 
-MIT
+The repository is prepared for Obsidian Community review with:
+
+- `manifest.json` in the repository root;
+- `README.md` in the repository root;
+- `LICENSE` in the repository root;
+- `versions.json` for version compatibility metadata;
+- release assets expected as `manifest.json`, `main.js` and `styles.css`;
+- semantic version tags matching the `version` field exactly.
+
+The current beta version is **0.10.3** and its GitHub release tag must therefore be exactly **`0.10.3`**.
+
+## Compatibility
+
+- Minimum declared Obsidian version: **1.5.0**.
+- `isDesktopOnly` is **false**.
+- The code guards Electron-specific behavior so it is used only on desktop.
+- Linux and Obsidian mobile emulation have been used during beta verification.
+- Real Android/iOS devices and Windows/macOS should continue to be exercised during public beta before treating all platform combinations as fully verified.
+
+## Support
+
+- GitHub issues: https://github.com/ExplorerAS/Pointix-File-Hub/issues
+- Support guide: [SUPPORT.md](./SUPPORT.md)
+- Email: **servicios.globix@gmail.com**
+
+Please do not include passwords, tokens, private notes or entire vaults in support requests.
+
+## Support development
+
+If Pointix File Hub is useful to you, you can voluntarily support its development:
+
+**Ko-fi:** https://ko-fi.com/exprorerit
+
+Support does not unlock features and is not required to use the plugin.
+
+## License
+
+Pointix File Hub is released under the [MIT License](./LICENSE).
