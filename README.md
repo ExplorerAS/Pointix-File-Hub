@@ -205,16 +205,16 @@ Support does not unlock features and is not required to use the plugin.
 
 Pointix File Hub is released under the [MIT License](./LICENSE).
 
-You are free to use, adapt and improve this code, including in your own projects. The MIT License requires keeping the notice **Copyright (c) 2026 Explorer It - Pointix** and the full license text in every copy or adapted version.
+You are free to use, adapt and improve this code, including in your own projects. The MIT License requires keeping the notice **Copyright (c) 2026 Explorer IT - Pointix** and the full license text in every copy or adapted version.
 
 If you publish an adapted or improved version, we kindly ask you to also credit the original in a visible place, such as your README or settings screen:
 
-> Based on [Pointix File Hub](https://github.com/ExplorerAS/Pointix-File-Hub) by Explorer It · Pointix
+> Based on [Pointix File Hub](https://github.com/ExplorerAS/Pointix-File-Hub) by Explorer IT · Pointix
 
 ### Licencia y créditos
 
-Puedes usar, adaptar y mejorar este código, incluso en tus propios proyectos. La licencia MIT exige conservar el aviso **Copyright (c) 2026 Explorer It - Pointix** y el texto completo de la licencia en cada copia o versión adaptada.
+Puedes usar, adaptar y mejorar este código, incluso en tus propios proyectos. La licencia MIT exige conservar el aviso **Copyright (c) 2026 Explorer IT - Pointix** y el texto completo de la licencia en cada copia o versión adaptada.
 
 Si publicas una versión adaptada o mejorada, te pedimos dar crédito visible al original, por ejemplo en tu README o en la pantalla de ajustes:
 
-> Basado en [Pointix File Hub](https://github.com/ExplorerAS/Pointix-File-Hub) de Explorer It · Pointix
+> Basado en [Pointix File Hub](https://github.com/ExplorerAS/Pointix-File-Hub) de Explorer IT · Pointix
